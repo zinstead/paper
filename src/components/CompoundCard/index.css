@@ -1,0 +1,9 @@
+.compound-card {
+  display: flex;
+  flex: auto;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid rgb(var(--gray-4));
+}
