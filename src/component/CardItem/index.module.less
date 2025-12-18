@@ -1,0 +1,46 @@
+.card-item {
+  // width: 300px;
+  // height: 300px;
+  &.dragging {
+    opacity: 0.4;
+    cursor: grabbing;
+    transform: scale(1.02); /* 微缩放，看起来更像被 lifted */
+    transition: none !important;
+  }
+
+  &.hovered {
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.15s ease;
+  }
+
+  .lock-icon {
+    font-size: 20px;
+    color: rgb(var(--gray-4));
+    &:hover {
+      cursor: pointer;
+      color: rgb(var(--blue-6));
+    }
+    &.locked {
+      color: rgb(var(--green-6));
+    }
+  }
+
+  .property-item {
+    padding: 0 5px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  // :global(.arco-carousel-indicator) {
+  //   top: -12px;
+  // }
+  :global(.arco-carousel-indicator-wrapper) {
+    height: 0px;
+    top: -24px;
+    :global(.arco-carousel-indicator) {
+      padding: 2px;
+      border-radius: 5px;
+      background: rgb(var(--gray-4));
+    }
+  }
+}

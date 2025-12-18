@@ -14,15 +14,17 @@ const CompoundCard = (props: {
   return (
     <div className="compound-card">
       {header}
-      <MoleculeStructure
-        id={structure}
-        structure={structure}
-        width={width}
-        height={height}
-        svgMode
-        drawingDelay={500}
-        previewWidth={600}
-      />
+      <div className="molecule-wrapper">
+        <MoleculeStructure
+          id={structure}
+          structure={structure}
+          width={width}
+          height={height}
+          svgMode
+          drawingDelay={500}
+          previewWidth={600}
+        />
+      </div>
       {footer}
     </div>
   );

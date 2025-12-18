@@ -25,7 +25,10 @@
     "noUncheckedSideEffectImports": true,
 
     // 自定义
-    "allowJs": true
+    "allowJs": true,
+    "paths": {
+      "@": ["./src"]
+    }
   },
   "include": ["src"]
 }

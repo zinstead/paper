@@ -2,7 +2,7 @@ import { Component } from "react";
 import { isEmpty, isEqual, uniq } from "lodash";
 import PropTypes from "prop-types";
 import "./index.css";
-import initRDKit from "../../utils/initRDKit";
+import initRDKit from "./initRDKit";
 import { Image } from "@arco-design/web-react";
 
 class MoleculeStructure extends Component {
@@ -30,7 +30,6 @@ class MoleculeStructure extends Component {
      *  self properties
      */
     hasHAtom: PropTypes.bool,
-    // 预览模式下，宽度
     previewWidth: PropTypes.number,
   };
 
@@ -109,7 +108,7 @@ class MoleculeStructure extends Component {
      * https://emscripten.org/docs/porting/connecting_cpp_and_javascript/embind.html#memory-management
      */
     mol.delete();
-    qmol.delete();
+    qmol?.delete();
   }
 
   isValidMol(mol) {
@@ -212,7 +211,7 @@ class MoleculeStructure extends Component {
 
     const mol = window.RDKit.get_mol(this.props.structure || "invalid");
     const isValidMol = this.isValidMol(mol);
-    mol.delete();
+    mol?.delete();
     if (!isValidMol && this.props.structure) {
       return <span>{this.props.structure}</span>;
     } else if (!isValidMol) {
