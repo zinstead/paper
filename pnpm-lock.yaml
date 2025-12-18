@@ -14,6 +14,12 @@ importers:
       '@arco-plugins/vite-react':
         specifier: ^1.3.3
         version: 1.3.3
+      '@dp/xgraph':
+        specifier: ^2.0.15
+        version: 2.0.15(typescript@5.9.3)
+      '@dp/xgraph-react':
+        specifier: ^2.0.11
+        version: 2.0.11(@dp/xgraph@2.0.15(typescript@5.9.3))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       classnames:
         specifier: ^2.5.1
         version: 2.5.1
@@ -203,6 +209,19 @@ packages:
   '@babel/types@7.28.5':
     resolution: {integrity: sha512-qQ5m48eI/MFLQ5PxQj4PFaprjyCTLI37ElWMmNs0K8Lk3dVeOdNpB3ks8jc7yM5CDmVC73eMVk/trk3fgmrUpA==}
     engines: {node: '>=6.9.0'}
+
+  '@dp/xgraph-react@2.0.11':
+    resolution: {integrity: sha512-1y5XuvYmd73gOX1Qv8k+GKotZIQvfvhQW24W3iTFv5kG/3Dmgmq30sJeyNUF07o11CiEqS5hx6esbqdIk7xrIg==}
+    peerDependencies:
+      '@dp/xgraph': '>=2.0.0'
+      '@types/react': '>=16'
+      react: '>=16'
+      react-dom: '>=16'
+
+  '@dp/xgraph@2.0.15':
+    resolution: {integrity: sha512-SrEC/a6jYJ+InZ7VJoFvaUactHJRon5TRz6Zcg1mAJIkSFt4KjC64SZSLC9E56S+wrj7yJ0JpgwSTCjIlXCh1g==}
+    peerDependencies:
+      typescript: '>=3.0.0'
 
   '@emotion/babel-plugin@11.13.5':
     resolution: {integrity: sha512-pxHCpT2ex+0q+HH91/zsdHkw/lXd468DIN2zvfvLtPKLLMo6gQj7oLObq8PhkrxOZb/gGCq03S3Z7PDhS8pduQ==}
@@ -1546,6 +1565,9 @@ packages:
 
   eve-raphael@0.5.0:
     resolution: {integrity: sha512-jrxnPsCGqng1UZuEp9DecX/AuSyAszATSjf4oEcRxvfxa1Oux4KkIPKBAAWWnpdwfARtr+Q0o9aPYWjsROD7ug==}
+
+  eventemitter3@4.0.7:
+    resolution: {integrity: sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==}
 
   events@3.3.0:
     resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
@@ -3019,6 +3041,22 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
+  '@dp/xgraph-react@2.0.11(@dp/xgraph@2.0.15(typescript@5.9.3))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@dp/xgraph': 2.0.15(typescript@5.9.3)
+      '@types/react': 18.3.27
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  '@dp/xgraph@2.0.15(typescript@5.9.3)':
+    dependencies:
+      d3-ease: 3.0.1
+      d3-interpolate: 3.0.1
+      d3-quadtree: 3.0.1
+      d3-timer: 3.0.1
+      eventemitter3: 4.0.7
+      typescript: 5.9.3
+
   '@emotion/babel-plugin@11.13.5':
     dependencies:
       '@babel/helper-module-imports': 7.27.1
@@ -4457,6 +4495,8 @@ snapshots:
   esutils@2.0.3: {}
 
   eve-raphael@0.5.0: {}
+
+  eventemitter3@4.0.7: {}
 
   events@3.3.0: {}
 

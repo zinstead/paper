@@ -2,6 +2,7 @@ import { useRoutes } from "react-router-dom";
 import DndWrapper from "./component/DndWrapper";
 import CardList from "./component/CardList";
 import EditorModal from "./component/EditorModal";
+import PerturbationMap from "./component/PerturbationMap";
 
 const App = () => {
   const routes = useRoutes([
@@ -17,8 +18,8 @@ const App = () => {
       ),
     },
     {
-      path: "/graph",
-      element: <div>graph</div>,
+      path: "/map",
+      element: <PerturbationMap />,
     },
     {
       path: "*",
