@@ -27,7 +27,7 @@
     // 自定义
     "allowJs": true,
     "paths": {
-      "@": ["./src"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"]

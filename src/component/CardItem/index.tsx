@@ -28,7 +28,7 @@ export interface CardItemProps {
   cardData: CardData;
   index: number;
   moveCard: (dragIndex: number, dropIndex: number) => void;
-  switchLock: (id: number) => void;
+  switchLock: (id: string) => void;
 }
 
 const ItemType = { CARD: "card" };
@@ -122,26 +122,31 @@ export default function CardItem({
             key={`page-${pageFields.join("-")}`}
             style={{ height: 21 * pageSize }}
           >
-            {pageFields.map((field) => (
-              <div
-                className={styles.propertyItem}
-                style={{
-                  background: getBackground({
-                    value: cardData[field],
-                    ...params,
-                  }),
-                  color: getTextColor(
-                    getBackground({
-                      value: cardData[field],
+            {pageFields.map((field) => {
+              const { value } = cardData.properties.find(
+                (item) => item.key === field
+              );
+              return (
+                <div
+                  className={styles.propertyItem}
+                  style={{
+                    background: getBackground({
+                      value,
                       ...params,
-                    })
-                  ),
-                }}
-              >
-                <div>{field}</div>
-                <div>{cardData[field]}</div>
-              </div>
-            ))}
+                    }),
+                    color: getTextColor(
+                      getBackground({
+                        value,
+                        ...params,
+                      })
+                    ),
+                  }}
+                >
+                  <div>{field}</div>
+                  <div>{value}</div>
+                </div>
+              );
+            })}
           </div>
         ))}
       </Carousel>
@@ -152,11 +157,14 @@ export default function CardItem({
     <>
       <motion.div ref={ref} layout className={cardClassName}>
         <CompoundCard
+          id={id}
           structure={structure}
           header={renderHeader()}
           footer={renderFooter()}
           width={200}
           height={200}
+          svgMode
+          previewWidth={600}
         />
       </motion.div>
     </>

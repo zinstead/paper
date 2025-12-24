@@ -1,9 +1,9 @@
-import { Component } from "react";
-import _, { uniq } from "lodash";
+import React, { Component } from "react";
+import _ from "lodash";
 import PropTypes from "prop-types";
 import "./index.css";
-import { Image } from "@arco-design/web-react";
 import initRDKit from "./initRDKit";
+import { Image } from "@arco-design/web-react";
 
 class MoleculeStructure extends Component {
   static propTypes = {
@@ -22,15 +22,9 @@ class MoleculeStructure extends Component {
     subStructure: PropTypes.string,
     extraDetails: PropTypes.object,
     drawingDelay: PropTypes.number,
-    highlights: PropTypes.shape({
-      atoms: PropTypes.arrayOf(PropTypes.number),
-      bonds: PropTypes.arrayOf(PropTypes.number),
-    }),
     /**
-     *  self properties
+     * 自定义properties
      */
-    hasHAtom: PropTypes.bool,
-    // 预览模式下，宽度
     previewWidth: PropTypes.number,
   };
 
@@ -40,17 +34,9 @@ class MoleculeStructure extends Component {
     width: 250,
     height: 200,
     svgMode: false,
-    hasHAtom: false,
     extraDetails: {},
     drawingDelay: undefined,
     previewWidth: undefined,
-    highlights: undefined,
-  };
-
-  state = {
-    svg: undefined,
-    rdKitLoaded: false,
-    rdKitError: false,
   };
 
   constructor(props) {
@@ -62,6 +48,12 @@ class MoleculeStructure extends Component {
       bondLineWidth: 1,
       addStereoAnnotation: true,
       ...this.props.extraDetails,
+    };
+
+    this.state = {
+      svg: undefined,
+      rdKitLoaded: false,
+      rdKitError: false,
     };
   }
 
@@ -87,12 +79,7 @@ class MoleculeStructure extends Component {
   }
 
   drawSVGorCanvas() {
-    let mol = window.RDKit.get_mol(this.props.structure || "invalid");
-    if (!this.props.hasHAtom) {
-      const str = mol.remove_hs();
-      mol.delete();
-      mol = window.RDKit.get_mol(str);
-    }
+    const mol = window.RDKit.get_mol(this.props.structure || "invalid");
     const qmol = window.RDKit.get_qmol(this.props.subStructure || "invalid");
     const isValidMol = this.isValidMol(mol);
 
@@ -108,19 +95,15 @@ class MoleculeStructure extends Component {
      * Delete C++ mol objects manually
      * https://emscripten.org/docs/porting/connecting_cpp_and_javascript/embind.html#memory-management
      */
-    mol.delete();
-    qmol.delete();
+    mol?.delete();
+    qmol?.delete();
   }
 
   isValidMol(mol) {
-    return Boolean(mol) && mol.is_valid();
+    return !!mol;
   }
 
   getMolDetails(mol, qmol) {
-    const molDetails = {
-      ...this.MOL_DETAILS,
-      ...(this.props.extraDetails || {}),
-    };
     if (this.isValidMol(mol) && this.isValidMol(qmol)) {
       const subStructHighlightDetails = JSON.parse(
         mol.get_substruct_matches(qmol)
@@ -136,22 +119,17 @@ class MoleculeStructure extends Component {
             { bonds: [], atoms: [] }
           )
         : subStructHighlightDetails;
-
-      Object.assign(molDetails, subStructHighlightDetailsMerged);
+      return JSON.stringify({
+        ...this.MOL_DETAILS,
+        ...(this.props.extraDetails || {}),
+        ...subStructHighlightDetailsMerged,
+      });
+    } else {
+      return JSON.stringify({
+        ...this.MOL_DETAILS,
+        ...(this.props.extraDetails || {}),
+      });
     }
-
-    if (this.props.highlights) {
-      molDetails.atoms = uniq([
-        ...(molDetails.atoms ?? []),
-        ...this.props.highlights.atoms,
-      ]);
-      molDetails.bonds = uniq([
-        ...(molDetails.bonds ?? []),
-        ...this.props.highlights.bonds,
-      ]);
-    }
-
-    return JSON.stringify(molDetails);
   }
 
   componentDidMount() {
@@ -186,17 +164,9 @@ class MoleculeStructure extends Component {
         prevProps.subStructure !== this.props.subStructure ||
         prevProps.width !== this.props.width ||
         prevProps.height !== this.props.height ||
-        prevProps.hasHAtom !== this.props.hasHAtom ||
         !_.isEqual(prevProps.extraDetails, this.props.extraDetails);
 
       if (shouldUpdateDrawing) {
-        this.MOL_DETAILS = {
-          width: this.props.width,
-          height: this.props.height,
-          bondLineWidth: 1,
-          addStereoAnnotation: true,
-          ...this.props.extraDetails,
-        };
         this.draw();
       }
     }
@@ -212,17 +182,22 @@ class MoleculeStructure extends Component {
 
     const mol = window.RDKit.get_mol(this.props.structure || "invalid");
     const isValidMol = this.isValidMol(mol);
-    mol.delete();
-    if (!isValidMol && this.props.structure) {
-      return <span>{this.props.structure}</span>;
-    } else if (!isValidMol) {
+    mol?.delete();
+
+    if (!isValidMol) {
       return (
         <span title={`Cannot render structure: ${this.props.structure}`}>
-          -
+          Render Error.
         </span>
       );
     } else if (this.props.svgMode) {
       return (
+        // <div
+        //   title={this.props.structure}
+        //   className={"molecule-structure-svg " + (this.props.className || "")}
+        //   style={{ width: this.props.width, height: this.props.height }}
+        //   dangerouslySetInnerHTML={{ __html: this.state.svg }}
+        // ></div>
         <Image
           width={this.props.width}
           height={this.props.height - 1}
@@ -234,9 +209,12 @@ class MoleculeStructure extends Component {
     } else {
       return (
         <div
-          className={`molecule-canvas-container ${this.props.className || ""}`}
+          className={
+            "molecule-canvas-container " + (this.props.className || "")
+          }
         >
           <canvas
+            title={this.props.structure}
             id={this.props.id}
             width={this.props.width}
             height={this.props.height}

@@ -20,7 +20,7 @@ export default function CardList() {
     setCardList(newList);
   };
 
-  const switchLock = (id: number) => {
+  const switchLock = (id: string) => {
     setCardList(
       cardList.map((card) => {
         if (card.id === id) {
@@ -65,6 +65,7 @@ export default function CardList() {
         <Collapse>
           {columns.map((field) => (
             <Collapse.Item
+              key={field}
               name={field}
               header={<div>{field}</div>}
               extra={<IconDelete />}

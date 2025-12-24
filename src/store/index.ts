@@ -4,7 +4,7 @@ import { cardList } from "../constant";
 
 interface EditData {
   visible: boolean;
-  editId: number;
+  editId: string;
   structure: string;
 }
 
@@ -18,7 +18,7 @@ interface CardDataStore {
 export const useCardDataStore = create<CardDataStore>()((set) => ({
   editData: {
     visible: false,
-    editId: 0,
+    editId: "0",
     structure: "",
   },
   setEditData: (editData) => set({ editData }),

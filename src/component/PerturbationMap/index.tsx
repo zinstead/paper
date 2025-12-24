@@ -1,12 +1,124 @@
 import { useEffect, useRef, useState } from "react";
-import { Cell, Graph, MiniMap, Scroller } from "@antv/x6";
+import { Cell, Graph } from "@antv/x6";
 import type { Node, NodeProperties, Edge, EdgeProperties } from "@antv/x6";
 import { register } from "@antv/x6-react-shape";
 import dagre from "dagre";
 import "./index.css";
 import CompoundCard from "../CompoundCard";
-import { v4 as uuid } from "uuid";
-import { throttle } from "lodash";
+import { isEmpty, throttle } from "lodash";
+import { mapData } from "../../constant";
+import { getBackground, getTextColor } from "../../utils";
+import { applyForceLayout } from "./layout";
+import { Form, Select } from "@arco-design/web-react";
+import useForm from "@arco-design/web-react/es/Form/useForm";
+
+register({
+  shape: "custom-node",
+  component: renderNode,
+});
+
+function buildDagreLayout(
+  graph: Graph,
+  nodes: { id: string }[],
+  edges: { source: string; target: string }[],
+  width: number,
+  height: number
+) {
+  const dagreGraph = new dagre.graphlib.Graph();
+  dagreGraph.setGraph({});
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
+
+  nodes.forEach((n) => {
+    dagreGraph.setNode(n.id, { width, height });
+  });
+
+  edges.forEach((e) => {
+    dagreGraph.setEdge(e.source, e.target);
+  });
+
+  dagre.layout(dagreGraph);
+
+  dagreGraph.nodes().forEach((id) => {
+    const node = graph.getCellById(id);
+    const pos = dagreGraph.node(id);
+    if (node?.isNode()) {
+      node.position(pos.x - pos.width / 2, pos.y - pos.height / 2);
+    }
+  });
+
+  graph.centerContent();
+}
+
+function renderNode({ node }: { node: Node<NodeProperties> }) {
+  const {
+    dim = false,
+    visible = true,
+    id,
+    structure,
+    properties,
+  } = node.getData() || {};
+
+  const renderPropertyList = (
+    properties: { key: string; value: any; type: string }[]
+  ) => {
+    return (
+      <div>
+        {properties?.map(({ key, value }) => {
+          const background = getBackground({
+            value,
+            min: 0,
+            max: 99,
+            linear: true,
+            inverted: false,
+          });
+          const color = getTextColor(background);
+          return (
+            <div
+              key={key}
+              style={{
+                padding: "0 5px",
+                display: "flex",
+                justifyContent: "space-between",
+                background,
+                color,
+              }}
+            >
+              <span>{key}</span>
+              <span>{value}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  return (
+    <div
+      style={{
+        opacity: dim ? 0.1 : 1,
+      }}
+    >
+      <CompoundCard
+        id={id}
+        header={<div>{id}</div>}
+        footer={renderPropertyList(properties)}
+        structure={structure}
+        width={198}
+        height={200}
+        svgMode
+        visible={visible}
+      />
+    </div>
+  );
+}
+
+const setNodeVisible = throttle((graph: Graph, ratio: number) => {
+  const visible = ratio >= 0.8;
+  graph.getNodes().forEach((n) => {
+    const data = n.getData();
+    n.setData({ ...data, visible });
+  });
+});
 
 function setEdgeLabelsOpacity(edge: Edge<EdgeProperties>, opacity: number) {
   edge.setLabels(
@@ -42,7 +154,7 @@ function highlightRelated(node: Cell, graph: Graph) {
 
   graph.getEdges().forEach((e) => {
     if (!highlightEdges.has(e.id)) {
-      e.attr("line/opacity", 0.2);
+      e.attr("line/opacity", 0.1);
     } else {
       e.attr("line/stroke", "blue");
     }
@@ -51,7 +163,7 @@ function highlightRelated(node: Cell, graph: Graph) {
   requestAnimationFrame(() => {
     graph.getEdges().forEach((e) => {
       if (!highlightEdges.has(e.id)) {
-        setEdgeLabelsOpacity(e, 0.2);
+        setEdgeLabelsOpacity(e, 0.1);
       }
     });
   });
@@ -74,149 +186,40 @@ function resetHighlight(graph: Graph) {
   });
 }
 
-function renderNode({ node }: { node: Node<NodeProperties> }) {
-  const { dim, visible } = node.getData() || {};
-  return (
-    <div
-      style={{
-        opacity: dim ? 0.2 : 1,
-        background: "white",
-      }}
-    >
-      <CompoundCard
-        id={uuid()}
-        header={<div>id</div>}
-        footer={<div>property</div>}
-        structure="C[C@H](CCCC(C)(C)O)[C@@]1([H])CC[C@@]2([H])C(CCC[C@]12C)=CC=C1C[C@@H](O)CCC1=C"
-        width={200}
-        height={200}
-        svgMode={false}
-        visible={visible}
-      />
-    </div>
-  );
-}
-
-const setNodeVisible = throttle((graph: Graph, ratio: number) => {
-  const visible = ratio >= 1;
-  graph.getNodes().forEach((n) => {
-    const data = n.getData();
-    n.setData({ ...data, visible });
-  });
-});
-
-register({
-  shape: "custom-node",
-  width: 200,
-  height: 200,
-  component: renderNode,
-});
+const labelLineHeight = 21;
+const width = 200;
+const height = 200 + labelLineHeight * 5 + 20 + 2;
 
 export default function Example() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [graph, setGraph] = useState<Graph>();
+  const [myGraph, setMyGraph] = useState<Graph>();
+  const [data, setData] = useState<typeof mapData>();
+  const nodeIds = data?.nodes.map((item) => item.id);
+  const edgeIds = data?.edges.map(
+    ({ source, target }) => `${source}-${target}`
+  );
+  const [form] = useForm();
+  const selectedNodes = Form.useWatch("selectedNodes", form);
+  const selectedEdge = Form.useWatch("selectedEdge", form);
+  const [selectNodesDisabled, setSelectNodesDisabled] = useState(false);
+  const [selectEdgeDisabled, setSelectEdgeDisabled] = useState(false);
 
   useEffect(() => {
     if (!containerRef) return;
     const graph = new Graph({
       container: containerRef.current!,
-      width: 1000,
+      width: 1600,
       height: 800,
       // 设置画布背景颜色
       background: {
         color: "#F2F7FA",
       },
-      // panning: true,
+      panning: true,
       mousewheel: true,
     });
-    setGraph(graph);
+    setMyGraph(graph);
 
-    // 节点数据
-    const nodesData = [
-      { id: "a", label: "节点A" },
-      { id: "b", label: "节点B" },
-      { id: "c", label: "节点C" },
-      { id: "d", label: "节点D" },
-    ];
-
-    const edgesData = [
-      { source: "a", target: "b" },
-      { source: "a", target: "c" },
-      { source: "b", target: "d" },
-      { source: "c", target: "d" },
-    ];
-
-    // 添加节点
-    nodesData.forEach((n) => {
-      graph.addNode({
-        id: n.id,
-        shape: "custom-node",
-      });
-    });
-
-    const labelsData = [
-      { text: "ΔG = -3.2", bg: "#e6f7ff" },
-      { text: "RMSD = 1.4", bg: "#fff7e6" },
-      { text: "State: stable", bg: "#f6ffed" },
-    ];
-
-    // 添加边
-    edgesData.forEach((e) => {
-      graph.addEdge({
-        source: e.source,
-        target: e.target,
-        labels: labelsData.map((item, index) => ({
-          position: {
-            distance: 0.5, // 沿边的中点
-            offset: {
-              x: 0,
-              y: index * 16, // 控制“多行”
-            },
-          },
-          markup: [
-            { tagName: "rect", selector: "bg" },
-            { tagName: "text", selector: "text" },
-          ],
-          attrs: {
-            bg: {
-              ref: "text",
-              fill: item.bg,
-              stroke: "#ccc",
-            },
-            text: {
-              text: item.text,
-              fill: "#333",
-              fontSize: 12,
-            },
-          },
-        })),
-      });
-    });
-
-    // 自动布局（Dagre）
-    const dagreGraph = new dagre.graphlib.Graph();
-    dagreGraph.setGraph({});
-    dagreGraph.setDefaultEdgeLabel(() => ({}));
-
-    nodesData.forEach((n) => {
-      dagreGraph.setNode(n.id, { width: 200, height: 200 });
-    });
-    edgesData.forEach((e) => {
-      dagreGraph.setEdge(e.source, e.target);
-    });
-
-    dagre.layout(dagreGraph);
-
-    dagreGraph.nodes().forEach((id) => {
-      const node = graph.getCellById(id);
-      const pos = dagreGraph.node(id);
-      if (node.isNode()) {
-        node.position(pos.x - pos.width / 2, pos.y - pos.height / 2);
-      }
-    });
-
-    graph.centerContent();
-
+    // 悬浮时高亮节点以及一阶邻域
     graph.on("node:mouseenter", ({ node }) => {
       highlightRelated(node, graph);
     });
@@ -269,5 +272,184 @@ export default function Example() {
     };
   }, []);
 
-  return <div ref={containerRef} />;
+  useEffect(() => {
+    const fetchData = async () => {
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(mapData);
+        }); // 假设 mapData 是你想要的数据
+      }).then((result) => {
+        setData(result as typeof mapData);
+      });
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!myGraph || !data) return;
+
+    const { nodes, edges } = data;
+    // 添加节点
+    nodes.forEach((n) => {
+      myGraph.addNode({
+        id: n.id,
+        shape: "custom-node",
+        width,
+        height,
+        data: n,
+      });
+    });
+
+    // 添加边
+    edges.forEach((e) => {
+      myGraph.addEdge({
+        source: e.source,
+        target: e.target,
+        labels: e.labels.map(({ key, value }, index) => {
+          const background = getBackground({
+            value,
+            min: 0,
+            max: 99,
+            linear: true,
+            inverted: false,
+          });
+          const color = getTextColor(background);
+          return {
+            position: {
+              distance: 0.5, // 沿边的中点
+              offset: {
+                x: 0,
+                y: index * labelLineHeight, // 控制“多行”
+              },
+            },
+            markup: [
+              { tagName: "rect", selector: "bg" },
+              { tagName: "text", selector: "text" },
+            ],
+            attrs: {
+              bg: {
+                ref: "text",
+                fill: background,
+                stroke: "#ccc",
+              },
+              text: {
+                text: `${key} = ${value}`,
+                fill: color,
+                fontSize: 12,
+              },
+            },
+          };
+        }),
+        zIndex: -1,
+        connectionPoint: "boundary",
+      });
+    });
+
+    // 应用力导向布局
+    const forceNodes = nodes.map((n) => ({
+      id: n.id,
+      width,
+      height,
+    }));
+
+    const forceEdges = edges.map((e) => ({
+      source: e.source,
+      target: e.target,
+      distance: 200, // 可根据能量差映射
+    }));
+
+    // 应用力导向布局
+    applyForceLayout(
+      myGraph,
+      {
+        nodes: forceNodes,
+        edges: forceEdges,
+      },
+      {
+        width: 1600,
+        height: 800,
+      }
+    );
+  }, [myGraph, data]);
+
+  useEffect(() => {
+    if (!myGraph || !data) return;
+
+    if (isEmpty(selectedNodes)) {
+      myGraph.getNodes().forEach((n) => {
+        n.show();
+        n.setData({ dim: false });
+      });
+      myGraph.getEdges().forEach((e) => e.show());
+      return;
+    }
+
+    const set = new Set(selectedNodes);
+
+    myGraph.getNodes().forEach((n) => {
+      if (set.has(n.id)) {
+        n.show();
+        n.setData({ dim: false });
+      } else {
+        n.hide();
+      }
+    });
+
+    myGraph.getEdges().forEach((e) => e.hide());
+
+    // 重新布局
+    const nodes = data.nodes.filter((n) => set.has(n.id));
+    const edges = data.edges.filter(
+      (e) => set.has(e.source) || set.has(e.target)
+    );
+    const forceNodes = nodes.map((n) => ({
+      id: n.id,
+      width,
+      height,
+    }));
+
+    const forceEdges = edges.map((e) => ({
+      source: e.source,
+      target: e.target,
+      distance: 200, // 可根据能量差映射
+    }));
+
+    // 应用力导向布局
+    requestAnimationFrame(() => {
+      applyForceLayout(
+        myGraph,
+        {
+          nodes: forceNodes,
+          edges: forceEdges,
+        },
+        {
+          width: 1600,
+          height: 800,
+        }
+      );
+    });
+  }, [myGraph, selectedNodes]);
+
+  return (
+    <div style={{ padding: 30 }}>
+      <Form form={form}>
+        <div
+          style={{
+            width: "50%",
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          <Form.Item label="Nodes" field={"selectedNodes"}>
+            <Select options={nodeIds} mode="multiple"></Select>
+          </Form.Item>
+          <Form.Item label="Edge" field={"selectedEdge"}>
+            <Select options={edgeIds}></Select>
+          </Form.Item>
+        </div>
+      </Form>
+      <div ref={containerRef} />
+    </div>
+  );
 }

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import MoleculeStructure from "../MoleculeStructure";
+import MoleculeStructure from "../MoleculeStructure/SmilesStructure";
 import "./index.css";
 
 const CompoundCard = (props: {
@@ -10,6 +10,8 @@ const CompoundCard = (props: {
   width: number;
   height: number;
   svgMode?: boolean;
+  previewWidth?: number;
+  drawingDelay?: number;
   visible?: boolean;
 }) => {
   const {
@@ -19,7 +21,9 @@ const CompoundCard = (props: {
     structure,
     width,
     height,
-    svgMode = false,
+    svgMode,
+    previewWidth,
+    drawingDelay = 500,
     visible = true,
   } = props;
 
@@ -36,8 +40,8 @@ const CompoundCard = (props: {
           width={width}
           height={height}
           svgMode={svgMode}
-          drawingDelay={500}
-          previewWidth={600}
+          drawingDelay={drawingDelay}
+          previewWidth={previewWidth}
         />
       </div>
       {footer}
