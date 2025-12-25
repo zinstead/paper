@@ -1,7 +1,7 @@
 import { Form, Switch } from "@arco-design/web-react";
-import useForm from "@arco-design/web-react/es/Form/useForm";
 import classNames from "classnames";
 import styles from "./index.module.less";
+import useForm from "@arco-design/web-react/es/Form/useForm";
 
 const NumericalProperty = () => {
   const [form] = useForm();

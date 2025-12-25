@@ -1,5 +1,11 @@
 import { cloneDeep } from "lodash";
 import { SMILES_LIST } from "../component/MoleculeStructure/smiles";
+import type {
+  CardData,
+  PerturbationData,
+  PerturbationEdge,
+  PerturbationNode,
+} from "@/type";
 
 export const columns = ["logP", "HBA", "QED", "status"];
 
@@ -15,14 +21,14 @@ const properties = Object.keys(propertyList).map((key) => ({
   type: typeof propertyList[key],
 }));
 
-export const cardList = SMILES_LIST.map((item, index) => ({
+export const cardList: CardData[] = SMILES_LIST.map((item, index) => ({
   id: String(index),
   structure: item,
   properties,
   locked: false,
 }));
 
-export const mapData = {
+export const mapData: PerturbationData = {
   nodes: [
     {
       id: "a",
@@ -50,9 +56,29 @@ export const mapData = {
     },
   ],
   edges: [
-    { source: "a", target: "b", labels: cloneDeep(properties), distance: 200 },
-    { source: "a", target: "c", labels: cloneDeep(properties), distance: 200 },
-    { source: "b", target: "d", labels: cloneDeep(properties), distance: 200 },
-    { source: "c", target: "d", labels: cloneDeep(properties), distance: 200 },
+    {
+      source: "a",
+      target: "b",
+      properties: cloneDeep(properties),
+    },
+    {
+      source: "a",
+      target: "c",
+      properties: cloneDeep(properties),
+    },
+    {
+      source: "b",
+      target: "d",
+      properties: cloneDeep(properties),
+    },
+    {
+      source: "c",
+      target: "d",
+      properties: cloneDeep(properties),
+    },
   ],
+  nodeProperties: Object.keys(propertyList),
+  edgeProperties: Object.keys(propertyList),
+  initNodeProperties: ["logP"],
+  initEdgeProperties: ["QED"],
 };

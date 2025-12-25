@@ -1,8 +1,8 @@
 import { Modal } from "@arco-design/web-react";
-import { IconClose } from "@arco-design/web-react/icon";
 import KetcherEditor from "../KetcherEditor";
 import "./index.less";
 import { useCardDataStore } from "../../store";
+import { IconClose } from "@arco-design/web-react/icon";
 
 const EditorModal = () => {
   const editData = useCardDataStore((state) => state.editData);
@@ -39,7 +39,6 @@ const EditorModal = () => {
             <IconClose className="close-icon" onClick={handleCancel} />
           </div>
         }
-        simple
         style={{ width: 1200 }}
         unmountOnExit
       >

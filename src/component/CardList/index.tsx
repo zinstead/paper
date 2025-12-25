@@ -4,8 +4,8 @@ import { useCardDataStore } from "../../store";
 import { Button, Collapse, Drawer } from "@arco-design/web-react";
 import { useState } from "react";
 import { columns } from "../../constant";
-import { IconDelete } from "@arco-design/web-react/icon";
 import NumericalProperty from "../NumericalProperty";
+import { IconDelete } from "@arco-design/web-react/icon";
 
 export default function CardList() {
   const cardList = useCardDataStore((state) => state.cardList);

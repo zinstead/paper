@@ -116,40 +116,40 @@ export default function CardItem({
     const { fields, pageSize } = getPropertyFields(columns);
     const params = { min: 123, max: 789, linear: true, inverted: false };
     return (
-      <Carousel indicatorPosition="top" showArrow="never" animation="fade">
-        {fields.map((pageFields) => (
-          <div
-            key={`page-${pageFields.join("-")}`}
-            style={{ height: 21 * pageSize }}
-          >
-            {pageFields.map((field) => {
-              const { value } = cardData.properties.find(
-                (item) => item.key === field
-              );
-              return (
-                <div
-                  className={styles.propertyItem}
-                  style={{
-                    background: getBackground({
-                      value,
-                      ...params,
-                    }),
-                    color: getTextColor(
-                      getBackground({
-                        value,
-                        ...params,
-                      })
-                    ),
-                  }}
-                >
-                  <div>{field}</div>
-                  <div>{value}</div>
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </Carousel>
+      <div style={{ transform: "none" }}>
+        <Carousel indicatorPosition="top" animation="fade" showArrow={"never"}>
+          {fields.map((pageFields) => (
+            <div
+              key={`page-${pageFields.join("-")}`}
+              style={{ height: 21 * pageSize }}
+            >
+              {pageFields.map((field) => {
+                const { value } = cardData.properties.find(
+                  (item) => item.key === field
+                );
+                const background = getBackground({
+                  value,
+                  ...params,
+                });
+                const color = getTextColor(background);
+
+                return (
+                  <div
+                    className={styles.propertyItem}
+                    style={{
+                      background,
+                      color,
+                    }}
+                  >
+                    <div>{field}</div>
+                    <div>{value}</div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </Carousel>
+      </div>
     );
   };
 
