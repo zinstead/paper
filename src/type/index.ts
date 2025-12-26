@@ -25,6 +25,24 @@ export interface PerturbationData {
   initEdgeProperties: string[];
 }
 
+export interface ForceLayoutData {
+  nodes: string[];
+  edges: ForceLayoutEdge[];
+}
+
+export interface ForceLayoutEdge {
+  source: string;
+  target: string;
+}
+
 export interface CardData extends PerturbationNode {
   locked: boolean;
+}
+
+export interface SearchRule {
+  property: string;
+  operator: string;
+  value?: string;
+  min?: string;
+  max?: string;
 }

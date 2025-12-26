@@ -4,19 +4,30 @@ import type { Node, NodeProperties, Edge, EdgeProperties } from "@antv/x6";
 import { register } from "@antv/x6-react-shape";
 import "./index.css";
 import CompoundCard from "../CompoundCard";
-import { isEmpty, isNil, throttle } from "lodash";
-import { mapData } from "../../constant";
-import { getBackground, getTextColor } from "../../utils";
+import { cloneDeep, isEmpty, keyBy, throttle } from "lodash";
+import { mapData, operators } from "../../constant";
+import { getBackground, getTextColor, isPassSearch } from "../../utils";
 import { applyForceLayout } from "./layout";
-import { Form, Select, Switch } from "@arco-design/web-react";
+import {
+  Button,
+  Form,
+  Input,
+  Modal,
+  Select,
+  Space,
+  Switch,
+} from "@arco-design/web-react";
 import { useRequest } from "ahooks";
 import type {
+  ForceLayoutData,
+  ForceLayoutEdge,
   PerturbationData,
   PerturbationEdge,
-  PerturbationNode,
   Property,
+  SearchRule,
 } from "@/type";
 import useForm from "@arco-design/web-react/es/Form/useForm";
+import { IconDelete, IconPlus } from "@arco-design/web-react/icon";
 
 register({
   shape: "custom-node",
@@ -30,13 +41,16 @@ function renderNode({ node }: { node: Node<NodeProperties> }) {
     id,
     structure,
     properties,
+    nodeProperties,
   } = node.getData() || {};
-  console.log(properties);
 
-  const renderPropertyList = (properties: Property[]) => {
+  const renderPropertyList = () => {
+    const displayProperties = (properties as Property[]).filter((p) =>
+      nodeProperties.has(p.key)
+    );
     return (
       <div>
-        {properties?.map(({ key, value }) => {
+        {displayProperties.map(({ key, value }) => {
           const background = getBackground({
             value,
             min: 0,
@@ -74,7 +88,7 @@ function renderNode({ node }: { node: Node<NodeProperties> }) {
       <CompoundCard
         id={id}
         header={<div>{id}</div>}
-        footer={renderPropertyList(properties)}
+        footer={renderPropertyList()}
         structure={structure}
         width={198}
         height={200}
@@ -88,8 +102,7 @@ function renderNode({ node }: { node: Node<NodeProperties> }) {
 const setNodeVisible = throttle((graph: Graph, ratio: number) => {
   const visible = ratio >= 0.8;
   graph.getNodes().forEach((n) => {
-    const data = n.getData();
-    n.setData({ ...data, visible });
+    n.setData({ visible });
   });
 });
 
@@ -214,9 +227,6 @@ export default function Example() {
   const selectedNodes = Form.useWatch("selectedNodes", form) as string[];
   const selectedEdge = Form.useWatch("selectedEdge", form) as string;
   const hasNeighbour = Form.useWatch("hasNeighbour", form) as boolean;
-  const selectedNodesDisabled = !isEmpty(selectedEdge);
-  const selectedEdgeDisabled = !isEmpty(selectedNodes);
-  const hasSearchCondition = selectedNodesDisabled || selectedEdgeDisabled;
 
   const { data } = useRequest(async () => {
     const res = await new Promise((resolve) => {
@@ -227,7 +237,7 @@ export default function Example() {
           nodeProperties: initNodeProperties,
           edgeProperties: initEdgeProperties,
         });
-      }); // 假设 mapData 是你想要的数据
+      });
     });
     return res as typeof mapData | undefined;
   });
@@ -238,6 +248,20 @@ export default function Example() {
 
   const nodeProperties = Form.useWatch("nodeProperties", form) as string[];
   const edgeProperties = Form.useWatch("edgeProperties", form) as string[];
+
+  const [searchModalVisible, setSearchModalVisible] = useState(false);
+  const [searchForm] = useForm();
+  const searchType = Form.useWatch("searchType", searchForm);
+  const searchProperties =
+    searchType === "node" ? data?.nodeProperties : data?.edgeProperties;
+  const searchRules = Form.useWatch("searchRules", searchForm) as boolean;
+
+  const selectedNodesDisabled = !isEmpty(selectedEdge) || !isEmpty(searchRules);
+  const selectedEdgeDisabled = !isEmpty(selectedNodes) || !isEmpty(searchRules);
+  const advancedSearchDisabled =
+    !isEmpty(selectedNodes) || !isEmpty(selectedEdge);
+  const hasSearchCondition =
+    selectedNodesDisabled || selectedEdgeDisabled || advancedSearchDisabled;
 
   useEffect(() => {
     if (!containerRef) return;
@@ -338,89 +362,37 @@ export default function Example() {
         labels: getEdgeLabels(e.properties, labelLineHeight),
         zIndex: -1,
         connectionPoint: "boundary",
+        data: e,
       });
     });
 
-    requestLayout(graph, data);
+    const layoutNodes = nodes.map((n) => n.id);
+    const layoutEdges = edges.map((e) => ({
+      source: e.source,
+      target: e.target,
+    }));
+    requestLayout(graph, { nodes: layoutNodes, edges: layoutEdges });
   }, [graph, data]);
 
   useEffect(() => {
-    if (!graph || !data) return;
-    if (!hasSearchCondition) resetGraph();
-    if (isEmpty(selectedNodes)) return;
-
-    const set = new Set(selectedNodes);
-    if (hasNeighbour) {
-      selectedNodes.forEach((id) => {
-        const node = graph.getCellById(id);
-        graph.getNeighbors(node).forEach((cell) => set.add(cell.id));
-      });
-    }
-
-    graph.getNodes().forEach((n) => {
-      if (set.has(n.id)) {
-        n.show();
-      } else {
-        n.hide();
-      }
-    });
-
-    graph.getEdges().forEach((e) => {
-      if (set.has(e.source as any) && set.has(e.target as any)) {
-        const data = e.getData();
-        e.setData({ ...data, display: true });
-      } else {
-        e.setData({ ...data, display: false });
-      }
-    });
-
-    // 重新布局
-    const nodes = data.nodes.filter((n) => set.has(n.id));
-    const edges = data.edges.filter(
-      (e) => set.has(e.source) && set.has(e.target)
-    );
-    requestLayout(graph, { nodes, edges });
+    searchNodes(selectedNodes);
   }, [graph, data, selectedNodes, hasNeighbour]);
 
   useEffect(() => {
-    if (!graph || !data) return;
-    if (!hasSearchCondition) resetGraph();
-    if (isEmpty(selectedEdge)) return;
-
-    const [source, target] = selectedEdge.split("-");
-    graph.getNodes().forEach((n) => {
-      if (n.id === source || n.id === target) {
-        n.show();
-      } else {
-        n.hide();
-      }
-    });
-
-    graph.getEdges().forEach((e) => {
-      const id = `${e.source}-${e.target}`;
-      if (id === selectedEdge) {
-        const data = e.getData();
-        e.setData({ ...data, display: true });
-      } else {
-        e.setData({ ...data, display: false });
-      }
-    });
-
-    // 重新布局
-    const nodes = data.nodes.filter((n) => n.id === source || n.id === target);
-    const edges = data.edges.filter(
-      (e) => `${e.source}-${e.target}` === selectedEdge
-    );
-    requestLayout(graph, { nodes, edges });
-  }, [graph, data, selectedEdge, hasNeighbour]);
+    const edges: ForceLayoutEdge[] = [];
+    if (!isEmpty(selectedEdge)) {
+      const [source, target] = selectedEdge.split("-");
+      edges.push({ source, target });
+    }
+    searchEdges(edges);
+  }, [graph, data, selectedEdge]);
 
   useEffect(() => {
     if (!graph || !data) return;
-    const nodePropertiesSet = new Set(nodeProperties);
+
     graph.getNodes().forEach((n) => {
-      const properties = n.getData().properties as Property[];
       n.setData({
-        properties: properties.filter((p) => nodePropertiesSet.has(p.key)),
+        nodeProperties: new Set(nodeProperties),
       });
     });
   }, [graph, data, nodeProperties]);
@@ -429,32 +401,21 @@ export default function Example() {
     if (!graph || !data) return;
     const edgePropertiesSet = new Set(edgeProperties);
     graph.getEdges().forEach((e) => {
-      const allProperties =
-        data.edges.find(
-          (edge) =>
-            edge.source === (e.source as any) &&
-            edge.target === (e.target as any)
-        )?.properties ?? [];
-      const properties = allProperties.filter((p) =>
+      const properties = e.getData().properties as Property[];
+      const displayProperties = properties.filter((p) =>
         edgePropertiesSet.has(p.key)
       );
-      const labels = getEdgeLabels(properties, labelLineHeight);
+      const labels = getEdgeLabels(displayProperties, labelLineHeight);
       e.setLabels(labels);
     });
   }, [graph, data, edgeProperties]);
 
-  const requestLayout = (
-    graph: Graph,
-    data: {
-      nodes: PerturbationNode[];
-      edges: PerturbationEdge[];
-    }
-  ) => {
+  const requestLayout = (graph: Graph, data: ForceLayoutData) => {
     const { nodes, edges } = data;
     const height = getNodeHeight(nodeProperties.length);
     // 应用力导向布局
-    const forceNodes = nodes.map((n) => ({
-      id: n.id,
+    const forceNodes = nodes.map((id) => ({
+      id,
       width,
       height,
     }));
@@ -482,7 +443,111 @@ export default function Example() {
     if (!graph || !data) return;
     graph.getNodes().forEach((n) => n.show());
     graph.getEdges().forEach((e) => e.show());
-    requestLayout(graph, data);
+    const nodes = data.nodes.map((n) => n.id);
+    const edges = data.edges.map((e) => ({
+      source: e.source,
+      target: e.target,
+    }));
+    requestLayout(graph, { nodes, edges });
+  };
+
+  const handleSearch = () => {
+    if (!graph || !data) return;
+    if (!hasSearchCondition) return resetGraph;
+    const { searchRules } = searchForm.getFieldsValue() as {
+      searchRules: SearchRule[];
+    };
+    if (isEmpty(searchRules)) return;
+    if (searchType === "node") {
+      const nodeIds: string[] = [];
+      graph.getNodes().forEach((n) => {
+        const { properties } = n.getData() as { properties: Property[] };
+        if (isPassSearch(searchRules, properties)) {
+          nodeIds.push(n.id);
+        }
+      });
+      searchNodes(nodeIds);
+    } else {
+      const edges: ForceLayoutEdge[] = [];
+      graph.getEdges().forEach((e) => {
+        const { properties } = e.getData() as { properties: Property[] };
+        if (isPassSearch(searchRules, properties)) {
+          edges.push({ source: e.source as any, target: e.target as any });
+        }
+        searchEdges(edges);
+      });
+    }
+  };
+
+  const searchNodes = (nodeIds: string[]) => {
+    if (!graph || !data) return;
+    if (!hasSearchCondition) return resetGraph();
+    if (isEmpty(nodeIds)) return;
+
+    const nodeSet = new Set(nodeIds);
+    if (hasNeighbour) {
+      nodeIds.forEach((id) => {
+        const node = graph.getCellById(id);
+        graph.getNeighbors(node).forEach((cell) => nodeSet.add(cell.id));
+      });
+    }
+
+    const edges = data.edges.filter(
+      (e) => nodeSet.has(e.source) && nodeSet.has(e.target)
+    );
+
+    graph.getNodes().forEach((n) => {
+      if (nodeSet.has(n.id)) {
+        n.show();
+      } else {
+        n.hide();
+      }
+    });
+
+    graph.getEdges().forEach((e) => {
+      const data = e.getData() as PerturbationEdge;
+      if (nodeSet.has(data.source) && nodeSet.has(data.target)) {
+        e.setData({ display: true });
+      } else {
+        e.setData({ display: false });
+      }
+    });
+
+    // 重新布局
+    requestLayout(graph, { nodes: Array.from(nodeSet), edges });
+  };
+
+  const searchEdges = (edges: ForceLayoutEdge[]) => {
+    if (!graph || !data) return;
+    if (!hasSearchCondition) return resetGraph();
+
+    const nodeSet = new Set<string>();
+    const edgeSet = new Set<string>();
+    edges.forEach((e) => {
+      nodeSet.add(e.source);
+      nodeSet.add(e.target);
+      edgeSet.add(`${e.source}-${e.target}`);
+    });
+    graph.getNodes().forEach((n) => {
+      if (nodeSet.has(n.id)) {
+        n.show();
+      } else {
+        n.hide();
+      }
+    });
+
+    graph.getEdges().forEach((e) => {
+      const data = e.getData() as PerturbationEdge;
+      const id = `${data.source}-${data.target}`;
+      if (edgeSet.has(id)) {
+        e.setData({ display: true });
+      } else {
+        e.setData({ display: false });
+      }
+    });
+
+    // 重新布局
+    requestLayout(graph, { nodes: Array.from(nodeSet), edges });
   };
 
   return (
@@ -490,12 +555,11 @@ export default function Example() {
       <Form form={form}>
         <div
           style={{
-            width: "50%",
             display: "flex",
             justifyContent: "space-between",
           }}
         >
-          <Form.Item label="节点" field={"selectedNodes"}>
+          <Form.Item label="节点" field={"selectedNodes"} initialValue={[]}>
             <Select
               options={nodeIds?.map((item) => ({ label: item, value: item }))}
               mode="multiple"
@@ -504,7 +568,7 @@ export default function Example() {
               disabled={selectedNodesDisabled}
             ></Select>
           </Form.Item>
-          <Form.Item label="边" field={"selectedEdge"}>
+          <Form.Item label="边" field={"selectedEdge"} initialValue={""}>
             <Select
               options={edgeIds?.map((item) => ({ label: item, value: item }))}
               allowClear
@@ -525,7 +589,6 @@ export default function Example() {
         </div>
         <div
           style={{
-            width: "50%",
             display: "flex",
             justifyContent: "space-between",
           }}
@@ -548,9 +611,101 @@ export default function Example() {
               allowClear
             ></Select>
           </Form.Item>
+          <Form.Item>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <Button
+                onClick={() => {
+                  setSearchModalVisible(true);
+                }}
+                type="primary"
+                disabled={advancedSearchDisabled}
+              >
+                高级检索
+              </Button>
+            </div>
+          </Form.Item>
         </div>
       </Form>
       <div ref={containerRef} />
+      <Modal
+        title={"高级检索"}
+        visible={searchModalVisible}
+        onCancel={() => {
+          setSearchModalVisible(false);
+        }}
+        onOk={() => {
+          handleSearch();
+          setSearchModalVisible(false);
+        }}
+        simple
+        style={{ width: 800 }}
+      >
+        <Form form={searchForm}>
+          <Form.List field="searchRules">
+            {(fields, { add, remove }) => (
+              <div>
+                <Form.Item
+                  label="检索类型"
+                  labelAlign="left"
+                  colon
+                  field={"searchType"}
+                  initialValue={"node"}
+                >
+                  <Select
+                    options={[
+                      { label: "节点", value: "node" },
+                      { label: "边", value: "edge" },
+                    ]}
+                    style={{ width: 100 }}
+                  ></Select>
+                </Form.Item>
+                <Form.Item label="检索规则" labelAlign="left" colon>
+                  <Button
+                    onClick={() => {
+                      add();
+                    }}
+                    type="primary"
+                    icon={<IconPlus />}
+                    style={{ width: 100 }}
+                  >
+                    Rule
+                  </Button>
+                </Form.Item>
+                {fields.map((field, index) => (
+                  <Space key={field.key}>
+                    <Form.Item field={`${field.field}.property`}>
+                      <Select
+                        style={{ width: 200 }}
+                        placeholder="属性"
+                        options={searchProperties}
+                      ></Select>
+                    </Form.Item>
+                    <Form.Item field={`${field.field}.operator`}>
+                      <Select
+                        style={{ width: 200 }}
+                        placeholder="操作符"
+                        options={operators}
+                      ></Select>
+                    </Form.Item>
+                    <Form.Item field={`${field.field}.value`}>
+                      <Input style={{ width: 200 }} placeholder="值"></Input>
+                    </Form.Item>
+                    <Form.Item>
+                      <Button
+                        onClick={() => {
+                          remove(index);
+                        }}
+                        status="danger"
+                        icon={<IconDelete />}
+                      ></Button>
+                    </Form.Item>
+                  </Space>
+                ))}
+              </div>
+            )}
+          </Form.List>
+        </Form>
+      </Modal>
     </div>
   );
 }

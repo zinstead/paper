@@ -1,4 +1,6 @@
+import type { Property, SearchRule } from "@/type";
 import * as d3 from "d3";
+import { keyBy } from "lodash";
 
 export function getBackground(params: {
   value: number;
@@ -32,4 +34,49 @@ export function getTextColor(backgroundColor: string): "#000" | "#fff" {
 
   // 判定阈值（工程与文献常用）
   return luminance < 0.5 ? "#fff" : "#000";
+}
+
+export function isPassSearch(
+  searchRules: SearchRule[],
+  properties: Property[]
+) {
+  const propertiesMap = keyBy(properties, "key");
+  for (const { property, operator, value, min, max } of searchRules) {
+    const { value: propertyValue, type } = propertiesMap[property];
+    const searchValue = type === "number" ? Number(value)! : value!;
+    const minValue = Number(min!),
+      maxValue = Number(max!);
+
+    switch (operator) {
+      case ">":
+        if (!(propertyValue > searchValue)) return false;
+        break;
+      case "<":
+        if (!(propertyValue < searchValue)) return false;
+        break;
+      case ">=":
+        if (!(propertyValue >= searchValue)) return false;
+        break;
+      case "<=":
+        if (!(propertyValue <= searchValue)) return false;
+        break;
+      case "=":
+        if (!(propertyValue === searchValue)) return false;
+        break;
+      case "!=":
+        if (!(propertyValue !== searchValue)) return false;
+        break;
+      case "between":
+        if (!(propertyValue >= minValue && propertyValue <= maxValue))
+          return false;
+        break;
+      case "not between":
+        if (propertyValue >= minValue && propertyValue <= maxValue)
+          return false;
+        break;
+      default:
+        break;
+    }
+  }
+  return true;
 }
