@@ -1,4 +1,4 @@
-import { Graph, Node, Edge } from "@antv/x6";
+import { Graph, Node } from "@antv/x6";
 import {
   forceSimulation,
   forceLink,
@@ -60,7 +60,7 @@ export function applyForceLayout(
   const height = options?.height ?? 600;
   const linkDistance = options?.linkDistance ?? 200;
   const chargeStrength = options?.chargeStrength ?? -400;
-  const collisionRadius = options?.collisionRadius ?? 120;
+  // const collisionRadius = options?.collisionRadius ?? 120;
   const alphaDecay = options?.alphaDecay ?? 0.02;
 
   const labelWidth = 200;

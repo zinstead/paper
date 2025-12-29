@@ -1,5 +1,5 @@
-import { cloneDeep } from "lodash";
-import { SMILES_LIST } from "../component/MoleculeStructure/smiles";
+import type { SerializedDockview } from "dockview";
+import { SMILES_LIST } from "../components/MoleculeStructure/smiles";
 import type { CardData, PerturbationData } from "@/type";
 
 export const columns = ["logP", "HBA", "QED", "status"];
@@ -101,3 +101,66 @@ export const operators = [
   "between",
   "not between",
 ];
+
+export const dockviewJson: SerializedDockview = {
+  grid: {
+    root: {
+      type: "branch",
+      data: [
+        {
+          type: "leaf",
+          data: {
+            views: ["leftPanel"],
+            activeView: "leftPanel",
+            id: "1",
+          },
+          size: 300,
+        },
+        {
+          type: "leaf",
+          data: {
+            views: ["rightPanel", "e64eb8e8", "6ba2d72a", "46c6ca98"],
+            activeView: "46c6ca98",
+            id: "2",
+          },
+          size: 1554,
+        },
+      ],
+      size: 694,
+    },
+    width: 1854,
+    height: 694,
+    orientation: "HORIZONTAL",
+  },
+  panels: {
+    leftPanel: {
+      id: "leftPanel",
+      contentComponent: "leftPanel",
+      tabComponent: "leftHeader",
+      title: "左侧固定面板",
+      minimumWidth: 300,
+      maximumWidth: 300,
+    },
+    rightPanel: {
+      id: "rightPanel",
+      contentComponent: "rightPanel",
+      title: "welcome",
+    },
+    e64eb8e8: {
+      id: "e64eb8e8",
+      contentComponent: "rightPanel",
+      title: "e64eb8e8",
+    },
+    "6ba2d72a": {
+      id: "6ba2d72a",
+      contentComponent: "rightPanel",
+      title: "6ba2d72a",
+    },
+    "46c6ca98": {
+      id: "46c6ca98",
+      contentComponent: "rightPanel",
+      title: "46c6ca98",
+    },
+  },
+  activeGroup: "2",
+};

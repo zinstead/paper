@@ -126,7 +126,7 @@ export default function CardItem({
               {pageFields.map((field) => {
                 const { value } = cardData.properties.find(
                   (item) => item.key === field
-                );
+                )!;
                 const background = getBackground({
                   value,
                   ...params,

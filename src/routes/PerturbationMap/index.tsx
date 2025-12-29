@@ -3,10 +3,10 @@ import { Cell, Graph } from "@antv/x6";
 import type { Node, NodeProperties, Edge, EdgeProperties } from "@antv/x6";
 import { register } from "@antv/x6-react-shape";
 import "./index.css";
-import CompoundCard from "../CompoundCard";
-import { cloneDeep, isEmpty, keyBy, throttle } from "lodash";
-import { mapData, operators } from "../../constant";
-import { getBackground, getTextColor, isPassSearch } from "../../utils";
+import CompoundCard from "@/components/CompoundCard";
+import { isEmpty, throttle } from "lodash";
+import { mapData, operators } from "@/constant";
+import { getBackground, getTextColor, isPassSearch } from "@/utils";
 import { applyForceLayout } from "./layout";
 import {
   Button,
@@ -21,7 +21,6 @@ import { useRequest } from "ahooks";
 import type {
   ForceLayoutData,
   ForceLayoutEdge,
-  PerturbationData,
   PerturbationEdge,
   Property,
   SearchRule,
@@ -453,7 +452,7 @@ export default function Example() {
 
   const handleSearch = () => {
     if (!graph || !data) return;
-    if (!hasSearchCondition) return resetGraph;
+    if (!hasSearchCondition) return resetGraph();
     const { searchRules } = searchForm.getFieldsValue() as {
       searchRules: SearchRule[];
     };
@@ -578,6 +577,7 @@ export default function Example() {
           </Form.Item>
           <Form.Item
             label="包含一阶邻域"
+            colon
             labelCol={{ span: 12 }}
             wrapperCol={{ span: 12 }}
             field={"hasNeighbour"}
@@ -696,6 +696,7 @@ export default function Example() {
                           remove(index);
                         }}
                         status="danger"
+                        shape="circle"
                         icon={<IconDelete />}
                       ></Button>
                     </Form.Item>

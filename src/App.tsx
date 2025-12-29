@@ -1,32 +1,36 @@
 import { useRoutes } from "react-router-dom";
-import DndWrapper from "./component/DndWrapper";
-import CardList from "./component/CardList";
-import EditorModal from "./component/EditorModal";
-import PerturbationMap from "./component/PerturbationMap";
+import { lazy, Suspense } from "react";
+import "./App.css";
+
+const Home = lazy(() => import("@/routes/Home/Home"));
+const Fep = lazy(() => import("@/routes/Fep/Fep"));
+const Card = lazy(() => import("@/routes/Card"));
+const PerturbationMap = lazy(() => import("@/routes/PerturbationMap"));
 
 const App = () => {
   const routes = useRoutes([
     {
       path: "/card",
-      element: (
-        <div style={{ margin: 20 }}>
-          <DndWrapper>
-            <CardList />
-          </DndWrapper>
-          <EditorModal />
-        </div>
-      ),
+      element: <Card />,
     },
     {
       path: "/map",
       element: <PerturbationMap />,
     },
     {
+      path: "/",
+      element: <Home />,
+    },
+    {
+      path: "/fep",
+      element: <Fep />,
+    },
+    {
       path: "*",
       element: <div>404</div>,
     },
   ]);
-  return <>{routes}</>;
+  return <Suspense fallback={<div>loading...</div>}>{routes}</Suspense>;
 };
 
 export default App;

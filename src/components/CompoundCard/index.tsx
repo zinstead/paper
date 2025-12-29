@@ -23,7 +23,7 @@ const CompoundCard = (props: {
     height,
     svgMode,
     previewWidth,
-    drawingDelay = 500,
+    drawingDelay = 0,
     visible = true,
   } = props;
 

@@ -33,6 +33,7 @@ const EditorModal = () => {
         visible={visible}
         onCancel={handleCancel}
         onOk={handleConfirm}
+        simple
         title={
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>编辑</span>

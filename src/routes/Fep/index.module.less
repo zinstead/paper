@@ -1,0 +1,22 @@
+.container {
+  display: flex;
+  height: 100vh;
+
+  .left {
+    width: 300px;
+    border-right: 1px solid gray;
+  }
+
+  .right {
+    flex: 1;
+  }
+}
+
+// 隐藏作为侧边栏的panel头部
+:global(.dv-view-container) {
+  :global(.dv-view):first-child {
+    :global(.dv-tabs-and-actions-container) {
+      display: none;
+    }
+  }
+}
