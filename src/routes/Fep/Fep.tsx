@@ -11,6 +11,7 @@ import { v4 as uuid } from "uuid";
 import { IconClose } from "@arco-design/web-react/icon";
 import RightControls from "@/components/RightControls/RightControls";
 import { dockviewJson } from "@/constant";
+import StructureViewer from "@/components/StructureViewer";
 
 const Fep = () => {
   const apiRef = useRef<DockviewApi | null>(null);
@@ -18,6 +19,7 @@ const Fep = () => {
   const components = {
     leftPanel: LeftPanel,
     rightPanel: RightPanel,
+    structureViewer: StructureViewer,
   };
 
   const tabComponents = {
@@ -46,18 +48,18 @@ const Fep = () => {
           <Button
             onClick={() => {
               const id = uuid().slice(0, 8);
-              openRightTab(id, id);
+              openRightTab(id, id, "rightPanel");
             }}
           >
             打开标签页
           </Button>
           <Button
             onClick={() => {
-              const data = apiRef.current?.toJSON();
-              console.log(data);
+              const id = uuid().slice(0, 8);
+              openRightTab(id, id, "structureViewer");
             }}
           >
-            查看json
+            打开viewer
           </Button>
         </Space>
       </div>
@@ -102,7 +104,7 @@ const Fep = () => {
     });
   }
 
-  function openRightTab(id: string, title: string) {
+  function openRightTab(id: string, title: string, component: string) {
     const api = apiRef.current;
     if (!api) return;
     const rightPanel = api.getPanel("rightPanel");
@@ -116,8 +118,8 @@ const Fep = () => {
 
     api.addPanel({
       id,
-      component: "rightPanel",
       title,
+      component,
       position: {
         referenceGroup: rightPanel.group,
       },

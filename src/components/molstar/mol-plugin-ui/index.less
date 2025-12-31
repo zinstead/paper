@@ -1,0 +1,46 @@
+#molstar-ui {
+  .msp-plugin {
+    .msp-plugin-content {
+      border: 0;
+    }
+
+    .msp-layout-left {
+      border-top: 0;
+      position: relative;
+      top: 0;
+      left: -100%;
+      height: 500px;
+      box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+      border-radius: 5px 0 0 5px;
+      font-size: 20px;
+
+      .msp-sequence-select {
+        display: flex;
+        align-items: center;
+      }
+
+      .msp-sequence-wrapper-non-empty {
+        padding: 6px 12px;
+
+        .msp-sequence-present,
+        .msp-sequence-missing {
+          padding: 1px;
+          display: inline-block;
+          line-height: 19px;
+        }
+      }
+
+      .msp-sequence-header {
+        padding-left: 10px;
+        font-size: 16px;
+        line-height: 24px;
+        height: 24px;
+      }
+    }
+
+    .msp-layout-main {
+      box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+      border-radius: 0 5px 5px 0;
+    }
+  }
+}

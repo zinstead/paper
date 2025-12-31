@@ -177,7 +177,10 @@ class MoleculeStructure extends Component {
       return "Error loading renderer.";
     }
     if (!this.state.rdKitLoaded) {
-      return "Loading renderer...";
+      // return "Loading renderer...";
+      const width = this.props.width,
+        height = this.props.height;
+      return <div style={{ width, height }}></div>;
     }
 
     const mol = window.RDKit.get_mol(this.props.structure || "invalid");
@@ -200,7 +203,7 @@ class MoleculeStructure extends Component {
         // ></div>
         <Image
           width={this.props.width}
-          height={this.props.height - 1}
+          height={this.props.height}
           preview={Boolean(this.props.previewWidth)}
           className={`molecule-structure-svg ${this.props.className || ""}`}
           src={`data:image/svg+xml;base64,${window.btoa(this.state.svg)}`}

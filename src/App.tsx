@@ -10,16 +10,16 @@ const PerturbationMap = lazy(() => import("@/routes/PerturbationMap"));
 const App = () => {
   const routes = useRoutes([
     {
-      path: "/card",
+      path: "/",
+      element: <Home />,
+    },
+    {
+      path: "card",
       element: <Card />,
     },
     {
-      path: "/map",
+      path: "map",
       element: <PerturbationMap />,
-    },
-    {
-      path: "/",
-      element: <Home />,
     },
     {
       path: "/fep",

@@ -80,3 +80,15 @@ export function isPassSearch(
   }
   return true;
 }
+
+export function downloadFile(url?: string) {
+  if (!url) {
+    console.error("下载链接不能为空");
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = url;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}

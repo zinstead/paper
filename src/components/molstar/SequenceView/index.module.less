@@ -1,0 +1,89 @@
+@import "./style.less";
+
+.msp-sequence-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+}
+
+.msp-sequence {
+  background: @sequence-background;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  border-radius: 5px;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+}
+
+.msp-sequence-header {
+  font-size: 16px;
+  height: 24px;
+  line-height: 24px;
+  padding-left: 12px;
+}
+
+.msp-sequence-non-empty {
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  &::-webkit-scrollbar-thumb {
+    border: 1px solid rgba(0, 0, 0, 0);
+    border-radius: 10px;
+    background-color: hsl(42.8571428571, 17.0731707317%, 69.4607843137%);
+    background-clip: content-box;
+  }
+  &::-webkit-scrollbar-track {
+    border-radius: 0;
+    background-color: hsl(42.8571428571, 17.0731707317%, 89.4607843137%);
+  }
+
+  font-size: 85%;
+  line-height: 180%;
+  font-family: "Courier New", monospace;
+  background: @msp-form-control-background;
+
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: absolute;
+  top: @sequence-select-height + 1px;
+  left: 0;
+  bottom: 0;
+  right: 0;
+
+  // 测试
+  font-size: 16px;
+  padding: 0 12px;
+  border-radius: 5px;
+}
+
+.custom-button {
+  box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.1);
+  &:global(.arco-btn) {
+    background-color: white;
+    border-radius: 5px;
+    &:global(.arco-btn-text):hover {
+      border: 1px solid rgb(var(--primary-6));
+      background-color: white;
+    }
+  }
+}
+
+.tooltip-container {
+  background: @sequence-background;
+  color: @sequence-number-color;
+  font-weight: bold;
+  margin-bottom: 20px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  height: 32px;
+
+  .divider-vertical {
+    border-color: @sequence-number-color;
+  }
+}
