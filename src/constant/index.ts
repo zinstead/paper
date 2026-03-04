@@ -23,7 +23,7 @@ const propertyList: Record<string, any> = {
   QED: Math.floor(Math.random() * 100),
   status: Math.random() < 0.5 ? "good" : "bad",
 };
-const properties = Object.keys(propertyList).map((key) => ({
+export const properties = Object.keys(propertyList).map((key) => ({
   key,
   value: propertyList[key],
   type: typeof propertyList[key],
@@ -32,7 +32,10 @@ const properties = Object.keys(propertyList).map((key) => ({
 export const cardList: CardData[] = SMILES_LIST.map((item, index) => ({
   id: String(index),
   structure: item,
-  properties,
+  properties: properties.map((item) => ({
+    ...item,
+    value: item.value + index * 100,
+  })),
   locked: false,
 }));
 

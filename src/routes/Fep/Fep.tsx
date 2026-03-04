@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import styles from "./index.module.less";
 import {
   DockviewReact,
@@ -125,6 +125,11 @@ const Fep = () => {
       },
     });
   }
+
+  useEffect(()=>{
+    console.log(apiRef.current?.toJSON());
+    
+  })
 
   return (
     <div className={styles.container}>

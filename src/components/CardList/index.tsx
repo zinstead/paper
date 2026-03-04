@@ -1,16 +1,29 @@
 import CardItem from "../CardItem";
 import styles from "./index.module.less";
 import { useCardDataStore } from "../../store";
-import { Button, Collapse, Drawer } from "@arco-design/web-react";
+import {
+  Button,
+  Collapse,
+  Drawer,
+  Pagination,
+  Space,
+} from "@arco-design/web-react";
 import { useState } from "react";
 import { columns } from "../../constant";
 import NumericalProperty from "../NumericalProperty";
 import { IconDelete } from "@arco-design/web-react/icon";
+import EditorModal from "@/components/EditorModal";
+import DndWrapper from "@/components/DndWrapper";
+import ColorSettingsDrawer from "../ColorSettingsDrawer";
+import { properties } from "@/constant";
 
 export default function CardList() {
   const cardList = useCardDataStore((state) => state.cardList);
   const setCardList = useCardDataStore((state) => state.setCardList);
   const [visible, setVisible] = useState(false);
+
+  const [pageNum, setPageNum] = useState(1);
+  const [pageSize, setPageSize] = useState(30);
 
   const moveCard = (dragIndex: number, dropIndex: number) => {
     if (cardList[dragIndex].locked || cardList[dropIndex].locked) return;
@@ -28,54 +41,70 @@ export default function CardList() {
         } else {
           return card;
         }
-      })
+      }),
     );
   };
 
   return (
-    <>
-      <Button
-        onClick={() => {
-          setVisible(true);
-        }}
-        type="primary"
-        style={{ marginBottom: 10 }}
-      >
-        卡片设置
-      </Button>
-      <div className={styles.cardList}>
-        {cardList.map((card, index) => (
-          <CardItem
-            key={card.id}
-            cardData={card}
-            index={index}
-            moveCard={moveCard}
-            switchLock={switchLock}
-          />
-        ))}
+    <div style={{ margin: 20 }}>
+      <Space size={16}>
+        <Button
+          onClick={() => {
+            setVisible(true);
+          }}
+          type="primary"
+          style={{ marginBottom: 10 }}
+        >
+          颜色编码控制
+        </Button>
+        <Button
+          onClick={() => {
+            setVisible(true);
+          }}
+          type="primary"
+          style={{ marginBottom: 10 }}
+        >
+          子结构查询
+        </Button>
+      </Space>
+      <DndWrapper>
+        <div className={styles.cardList}>
+          {cardList
+            .slice((pageNum - 1) * pageSize, pageNum * pageSize)
+            .map((card, index) => (
+              <CardItem
+                key={card.id}
+                cardData={card}
+                index={index}
+                moveCard={moveCard}
+                switchLock={switchLock}
+              />
+            ))}
+        </div>
+      </DndWrapper>
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <Pagination
+          total={cardList.length}
+          showTotal
+          pageSize={pageSize}
+          current={pageNum}
+          onChange={(pageNum, pageSize) => {
+            setPageNum(pageNum);
+            setPageSize(pageSize);
+          }}
+        />
       </div>
-      <Drawer
+      <ColorSettingsDrawer
+        properties={properties}
         visible={visible}
         onCancel={() => {
           setVisible(false);
         }}
-        title={"卡片设置"}
-        width={500}
-      >
-        <Collapse>
-          {columns.map((field) => (
-            <Collapse.Item
-              key={field}
-              name={field}
-              header={<div>{field}</div>}
-              extra={<IconDelete />}
-              className={styles.collapseItem}
-            >
-              <NumericalProperty />
-            </Collapse.Item>
-          ))}
-        </Collapse>
-      </Drawer>
-    </>
+        onConfirm={() => {
+          setVisible(false);
+        }}
+      />
+      <EditorModal />
+    </div>
   );
 }

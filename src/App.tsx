@@ -1,10 +1,10 @@
 import { useRoutes } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import "./App.css";
+import CardList from "./components/CardList";
 
 const Home = lazy(() => import("@/routes/Home/Home"));
 const Fep = lazy(() => import("@/routes/Fep/Fep"));
-const Card = lazy(() => import("@/routes/Card"));
 const PerturbationMap = lazy(() => import("@/routes/PerturbationMap"));
 
 const App = () => {
@@ -15,7 +15,7 @@ const App = () => {
     },
     {
       path: "card",
-      element: <Card />,
+      element: <CardList />,
     },
     {
       path: "map",

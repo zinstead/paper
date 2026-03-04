@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import _ from "lodash";
+import _, { debounce } from "lodash";
 import PropTypes from "prop-types";
 import "./index.css";
 import initRDKit from "./initRDKit";

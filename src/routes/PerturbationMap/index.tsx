@@ -4,19 +4,10 @@ import type { Node, NodeProperties, Edge, EdgeProperties } from "@antv/x6";
 import { register } from "@antv/x6-react-shape";
 import "./index.css";
 import CompoundCard from "@/components/CompoundCard";
-import { isEmpty, throttle } from "lodash";
-import { mapData, operators } from "@/constant";
+import { isEmpty, mapValues, throttle } from "lodash";
+import { mapData, properties } from "@/constant";
 import { getBackground, getTextColor, isPassSearch } from "@/utils";
-import { applyForceLayout } from "./layout";
-import {
-  Button,
-  Form,
-  Input,
-  Modal,
-  Select,
-  Space,
-  Switch,
-} from "@arco-design/web-react";
+import { Button, Form, Grid, Select, Switch } from "@arco-design/web-react";
 import { useRequest } from "ahooks";
 import type {
   ForceLayoutData,
@@ -26,7 +17,10 @@ import type {
   SearchRule,
 } from "@/type";
 import useForm from "@arco-design/web-react/es/Form/useForm";
-import { IconDelete, IconPlus } from "@arco-design/web-react/icon";
+import { IconSearch, IconSettings } from "@arco-design/web-react/icon";
+import { runFcoseLayout } from "./cytoscape";
+import ColorSettingsDrawer from "@/components/ColorSettingsDrawer";
+import AdvancedSearchModal from "@/components/AdvancedSearchModal";
 
 register({
   shape: "custom-node",
@@ -45,7 +39,7 @@ function renderNode({ node }: { node: Node<NodeProperties> }) {
 
   const renderPropertyList = () => {
     const displayProperties = (properties as Property[]).filter((p) =>
-      nodeProperties.has(p.key)
+      nodeProperties.has(p.key),
     );
     return (
       <div>
@@ -120,7 +114,7 @@ function setEdgeLabelsOpacity(edge: Edge<EdgeProperties>, opacity: number) {
           opacity,
         },
       },
-    }))
+    })),
   );
 }
 
@@ -209,14 +203,11 @@ function getEdgeLabels(properties: Property[], labelLineHeight: number) {
   });
 }
 
-const canvasWidth = 1600,
-  canvasHeight = 800;
 const labelLineHeight = 21;
 const width = 200;
 function getNodeHeight(labelCount: number) {
-  return 200 + labelLineHeight * labelCount + 20 + 2;
+  return 200 + labelLineHeight * labelCount + 20 + 2 + 20;
 }
-const distance = 200;
 
 export default function Example() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -242,7 +233,7 @@ export default function Example() {
   });
   const nodeIds = data?.nodes.map((item) => item.id);
   const edgeIds = data?.edges.map(
-    ({ source, target }) => `${source}-${target}`
+    ({ source, target }) => `${source}-${target}`,
   );
 
   const nodeProperties = Form.useWatch("nodeProperties", form) as string[];
@@ -262,13 +253,13 @@ export default function Example() {
   const hasSearchCondition =
     selectedNodesDisabled || selectedEdgeDisabled || advancedSearchDisabled;
 
+  const [visible, setVisible] = useState(false);
+
   useEffect(() => {
     if (!containerRef) return;
     const graph = new Graph({
       container: containerRef.current!,
-      width: canvasWidth,
-      height: canvasHeight,
-      // 设置画布背景颜色
+      autoResize: true,
       background: {
         color: "#F2F7FA",
       },
@@ -402,40 +393,43 @@ export default function Example() {
     graph.getEdges().forEach((e) => {
       const properties = e.getData().properties as Property[];
       const displayProperties = properties.filter((p) =>
-        edgePropertiesSet.has(p.key)
+        edgePropertiesSet.has(p.key),
       );
       const labels = getEdgeLabels(displayProperties, labelLineHeight);
       e.setLabels(labels);
     });
   }, [graph, data, edgeProperties]);
 
-  const requestLayout = (graph: Graph, data: ForceLayoutData) => {
-    const { nodes, edges } = data;
+  const requestLayout = async (graph: Graph, data: ForceLayoutData) => {
     const height = getNodeHeight(nodeProperties.length);
     // 应用力导向布局
-    const forceNodes = nodes.map((id) => ({
+    const forceNodes = data.nodes.map((id) => ({
       id,
       width,
       height,
     }));
-
-    const forceEdges = edges.map((e) => ({
+    const forceEdges = data.edges.map((e) => ({
       source: e.source,
       target: e.target,
-      distance, // 可根据能量差映射
     }));
 
-    applyForceLayout(
-      graph,
-      {
-        nodes: forceNodes,
-        edges: forceEdges,
-      },
-      {
-        width: canvasWidth,
-        height: canvasHeight,
-      }
+    const result = await runFcoseLayout(forceNodes, forceEdges);
+    const nodes = Object.values(
+      mapValues(result, (value, key) => ({
+        id: key,
+        ...value,
+      })),
     );
+
+    nodes.forEach((n) => {
+      const node = graph.getCellById(n.id) as Node;
+      node.position(n.x - width / 2, n.y - height / 2);
+    });
+
+    requestAnimationFrame(() => {
+      graph.zoomToFit({ padding: 30 });
+      graph.centerContent();
+    });
   };
 
   const resetGraph = () => {
@@ -492,7 +486,7 @@ export default function Example() {
     }
 
     const edges = data.edges.filter(
-      (e) => nodeSet.has(e.source) && nodeSet.has(e.target)
+      (e) => nodeSet.has(e.source) && nodeSet.has(e.target),
     );
 
     graph.getNodes().forEach((n) => {
@@ -550,163 +544,187 @@ export default function Example() {
   };
 
   return (
-    <div style={{ padding: 30 }}>
-      <Form form={form}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-          }}
-        >
-          <Form.Item label="节点" field={"selectedNodes"} initialValue={[]}>
-            <Select
-              options={nodeIds?.map((item) => ({ label: item, value: item }))}
-              mode="multiple"
-              allowClear
-              showSearch={false}
-              disabled={selectedNodesDisabled}
-            ></Select>
-          </Form.Item>
-          <Form.Item label="边" field={"selectedEdge"} initialValue={""}>
-            <Select
-              options={edgeIds?.map((item) => ({ label: item, value: item }))}
-              allowClear
-              showSearch={false}
-              disabled={selectedEdgeDisabled}
-            ></Select>
-          </Form.Item>
-          <Form.Item
-            label="包含一阶邻域"
-            colon
-            labelCol={{ span: 12 }}
-            wrapperCol={{ span: 12 }}
-            field={"hasNeighbour"}
-            initialValue={true}
-            triggerPropName="checked"
-          >
-            <Switch checkedText="ON" uncheckedText="OFF" />
-          </Form.Item>
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-          }}
-        >
-          <Form.Item
-            label="节点属性"
-            field={"nodeProperties"}
-            initialValue={[]}
-          >
-            <Select
-              options={data?.nodeProperties}
-              mode="multiple"
-              allowClear
-            ></Select>
-          </Form.Item>
-          <Form.Item label="边属性" field={"edgeProperties"} initialValue={[]}>
-            <Select
-              options={data?.edgeProperties}
-              mode="multiple"
-              allowClear
-            ></Select>
-          </Form.Item>
-          <Form.Item>
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <Button
-                onClick={() => {
-                  setSearchModalVisible(true);
-                }}
-                type="primary"
-                disabled={advancedSearchDisabled}
+    <div
+      style={{
+        height: "100vh",
+        padding: 30,
+        boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div style={{ height: "auto" }}>
+        <Form form={form}>
+          <Grid.Row>
+            <Grid.Col span={8}>
+              <div style={{ display: "flex" }}>
+                <Form.Item
+                  label="节点"
+                  field={"selectedNodes"}
+                  initialValue={[]}
+                >
+                  <Select
+                    options={nodeIds?.map((item) => ({
+                      label: item,
+                      value: item,
+                    }))}
+                    mode="multiple"
+                    allowClear
+                    showSearch={false}
+                    disabled={selectedNodesDisabled}
+                  ></Select>
+                </Form.Item>
+                <Button
+                  icon={<IconSearch />}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginLeft: 10,
+                  }}
+                  onClick={() => {
+                    setSearchModalVisible(true);
+                  }}
+                  disabled={advancedSearchDisabled}
+                />
+              </div>
+            </Grid.Col>
+            <Grid.Col span={8}>
+              <div style={{ display: "flex" }}>
+                <Form.Item label="边" field={"selectedEdge"} initialValue={""}>
+                  <Select
+                    options={edgeIds?.map((item) => ({
+                      label: item,
+                      value: item,
+                    }))}
+                    allowClear
+                    showSearch={false}
+                    disabled={selectedEdgeDisabled}
+                  ></Select>
+                </Form.Item>
+                <Button
+                  icon={<IconSearch />}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginLeft: 10,
+                  }}
+                  onClick={() => {
+                    setSearchModalVisible(true);
+                  }}
+                  disabled={advancedSearchDisabled}
+                />
+              </div>
+            </Grid.Col>
+            <Grid.Col span={8}>
+              <Form.Item
+                label="包含一阶邻域"
+                colon
+                labelCol={{ span: 12 }}
+                wrapperCol={{ span: 12 }}
+                field={"hasNeighbour"}
+                initialValue={true}
+                triggerPropName="checked"
               >
-                高级检索
-              </Button>
-            </div>
-          </Form.Item>
+                <Switch checkedText="ON" uncheckedText="OFF" />
+              </Form.Item>
+            </Grid.Col>
+          </Grid.Row>
+
+          <Grid.Row>
+            <Grid.Col span={8}>
+              <div style={{ display: "flex" }}>
+                <Form.Item
+                  label="节点属性"
+                  field={"nodeProperties"}
+                  initialValue={[]}
+                >
+                  <Select
+                    options={data?.nodeProperties}
+                    mode="multiple"
+                    allowClear
+                  ></Select>
+                </Form.Item>
+                <Button
+                  icon={<IconSettings />}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginLeft: 10,
+                  }}
+                  onClick={() => setVisible(true)}
+                />
+              </div>
+            </Grid.Col>
+            <Grid.Col span={8}>
+              <div style={{ display: "flex" }}>
+                <Form.Item
+                  label="边属性"
+                  field={"edgeProperties"}
+                  initialValue={[]}
+                >
+                  <Select
+                    options={data?.edgeProperties}
+                    mode="multiple"
+                    allowClear
+                  ></Select>
+                </Form.Item>
+                <Button
+                  icon={<IconSettings />}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginLeft: 10,
+                  }}
+                  onClick={() => setVisible(true)}
+                />
+              </div>
+            </Grid.Col>
+          </Grid.Row>
+        </Form>
+      </div>
+      <div style={{ flex: 1 }}>
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <div
+            style={{ overflow: "hidden", minHeight: 0 }}
+            ref={containerRef}
+          />
         </div>
-      </Form>
-      <div ref={containerRef} />
-      <Modal
-        title={"高级检索"}
+      </div>
+      <AdvancedSearchModal
         visible={searchModalVisible}
         onCancel={() => {
           setSearchModalVisible(false);
         }}
-        onOk={() => {
-          handleSearch();
-          setSearchModalVisible(false);
+        onSearch={handleSearch}
+        searchProperties={searchProperties ?? []}
+      />
+      <ColorSettingsDrawer
+        properties={properties}
+        visible={visible}
+        onCancel={() => {
+          setVisible(false);
         }}
-        simple
-        style={{ width: 800 }}
-      >
-        <Form form={searchForm}>
-          <Form.List field="searchRules">
-            {(fields, { add, remove }) => (
-              <div>
-                <Form.Item
-                  label="检索类型"
-                  labelAlign="left"
-                  colon
-                  field={"searchType"}
-                  initialValue={"node"}
-                >
-                  <Select
-                    options={[
-                      { label: "节点", value: "node" },
-                      { label: "边", value: "edge" },
-                    ]}
-                    style={{ width: 100 }}
-                  ></Select>
-                </Form.Item>
-                <Form.Item label="检索规则" labelAlign="left" colon>
-                  <Button
-                    onClick={() => {
-                      add();
-                    }}
-                    type="primary"
-                    icon={<IconPlus />}
-                    style={{ width: 100 }}
-                  >
-                    Rule
-                  </Button>
-                </Form.Item>
-                {fields.map((field, index) => (
-                  <Space key={field.key}>
-                    <Form.Item field={`${field.field}.property`}>
-                      <Select
-                        style={{ width: 200 }}
-                        placeholder="属性"
-                        options={searchProperties}
-                      ></Select>
-                    </Form.Item>
-                    <Form.Item field={`${field.field}.operator`}>
-                      <Select
-                        style={{ width: 200 }}
-                        placeholder="操作符"
-                        options={operators}
-                      ></Select>
-                    </Form.Item>
-                    <Form.Item field={`${field.field}.value`}>
-                      <Input style={{ width: 200 }} placeholder="值"></Input>
-                    </Form.Item>
-                    <Form.Item>
-                      <Button
-                        onClick={() => {
-                          remove(index);
-                        }}
-                        status="danger"
-                        shape="circle"
-                        icon={<IconDelete />}
-                      ></Button>
-                    </Form.Item>
-                  </Space>
-                ))}
-              </div>
-            )}
-          </Form.List>
-        </Form>
-      </Modal>
+        onConfirm={() => {
+          setVisible(false);
+        }}
+      />
     </div>
   );
 }
