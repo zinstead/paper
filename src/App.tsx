@@ -5,7 +5,7 @@ import CardList from "./components/CardList";
 
 const Home = lazy(() => import("@/routes/Home/Home"));
 const Fep = lazy(() => import("@/routes/Fep/Fep"));
-const PerturbationMap = lazy(() => import("@/routes/PerturbationMap"));
+const PerturbationMap = lazy(() => import("@/components/PerturbationMap"));
 
 const App = () => {
   const routes = useRoutes([

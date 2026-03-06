@@ -10,11 +10,32 @@ import { MolScriptBuilder } from "molstar/lib/mol-script/language/builder";
 import { Expression } from "molstar/lib/mol-script/language/expression";
 import { Color } from "molstar/lib/mol-util/color";
 
+export function getSequenceFromStructure(plugin: PluginUIContext) {
+  const result: Record<string, string[]> = {};
+  const structure = plugin.managers.structure.hierarchy.current.structures[0]
+    ?.cell?.obj?.data as Structure;
+  Structure.eachAtomicHierarchyElement(structure, {
+    residue: (loc) => {
+      const chainType = StructureProperties.entity.type(loc);
+      if (chainType === "polymer") {
+        const chainId = StructureProperties.chain.auth_asym_id(loc);
+        const residueId = StructureProperties.residue.auth_seq_id(loc);
+        const compId = StructureProperties.residue.auth_comp_id(loc);
+        if (!result[chainId]) {
+          result[chainId] = [];
+        }
+        result[chainId].push(`${compId} ${residueId}`);
+      }
+    },
+  });
+  return result;
+}
+
 // Modify the 3d structural color of some residues
 export async function color3DByResidues(
   plugin: PluginUIContext,
   residues: Record<string, number[]>,
-  color: Color
+  color: Color,
 ) {
   const query = getSelectionQueryFromResidues(residues);
   await plugin.managers.structure.component.applyTheme({
@@ -26,7 +47,7 @@ export async function color3DByResidues(
 
 export async function resetColor3DByResidues(
   plugin: PluginUIContext,
-  residues: Record<string, number[]>
+  residues: Record<string, number[]>,
 ) {
   const query = getSelectionQueryFromResidues(residues);
   await plugin.managers.structure.component.applyTheme({
@@ -39,7 +60,7 @@ export async function resetColor3DByResidues(
 export async function emissive3DByResidues(
   plugin: PluginUIContext,
   residues: Record<string, number[]>,
-  emissive: number
+  emissive: number,
 ) {
   const query = getSelectionQueryFromResidues(residues);
   await plugin.managers.structure.component.applyTheme({
@@ -52,7 +73,7 @@ export async function emissive3DByResidues(
 export async function transparency3DByResidues(
   plugin: PluginUIContext,
   residues: Record<string, number[]>,
-  transparency: number
+  transparency: number,
 ) {
   const query = getSelectionQueryFromResidues(residues);
   await plugin.managers.structure.component.applyTheme({
@@ -65,7 +86,7 @@ export async function transparency3DByResidues(
 // Modify the color selection
 export function changeSelectionColor(
   plugin: PluginUIContext,
-  params: { selectColor: Color; selectEdgeColor: Color }
+  params: { selectColor: Color; selectEdgeColor: Color },
 ) {
   const { selectColor, selectEdgeColor } = params;
   const renderer = plugin.canvas3d!.props.renderer;
@@ -103,7 +124,7 @@ export function getResiduesFromCrop(crop: Record<string, string>[]) {
 }
 
 export function getSelectionQueryFromResidues(
-  residues: Record<string, number[]>
+  residues: Record<string, number[]>,
 ) {
   const groups: Expression[] = [];
   Object.entries(residues).forEach(([chainId, residueIds]) => {
@@ -123,13 +144,13 @@ export function getSelectionQueryFromResidues(
             MolScriptBuilder.struct.atomProperty.macromolecular.label_seq_id(),
             residueId,
           ]),
-        })
+        }),
       );
     }
   });
   const sq = StructureSelectionQuery(
     "residue_range",
-    MolScriptBuilder.struct.combinator.merge(groups)
+    MolScriptBuilder.struct.combinator.merge(groups),
   );
   return sq;
 }
@@ -164,7 +185,7 @@ export function getResiduesFromSelection(plugin: PluginUIContext) {
   const result: Record<string, number[]> = {};
   let hasError = false;
   const selections = Array.from(
-    plugin.managers.structure.selection.entries.values()
+    plugin.managers.structure.selection.entries.values(),
   );
 
   for (const { structure } of selections) {
@@ -204,7 +225,7 @@ export function getResiduesFromSelection(plugin: PluginUIContext) {
 
 export function isHotspotCropped(
   cropTarget: Record<string, number[]>,
-  specifyHotspot: Record<string, number[]>
+  specifyHotspot: Record<string, number[]>,
 ) {
   for (const [chainId, ids] of Object.entries(specifyHotspot)) {
     if (difference(ids, cropTarget[chainId]).length > 0) {
@@ -229,7 +250,7 @@ export function getCropTargetTip(selectedResidues: Record<string, number[]>) {
 }
 
 export function getSpecifyHotspotTip(
-  selectedResidues: Record<string, number[]>
+  selectedResidues: Record<string, number[]>,
 ) {
   const selectedRanges: string[] = [];
   for (const [chainId, ids] of Object.entries(selectedResidues)) {

@@ -209,7 +209,7 @@ function getNodeHeight(labelCount: number) {
   return 200 + labelLineHeight * labelCount + 20 + 2 + 20;
 }
 
-export default function Example() {
+export default function PerturbationMap() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [graph, setGraph] = useState<Graph>();
   const [form] = useForm();
@@ -547,13 +547,14 @@ export default function Example() {
     <div
       style={{
         height: "100vh",
-        padding: 30,
+        padding: 20,
         boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
+        overflow: "hidden",
       }}
     >
-      <div style={{ height: "auto" }}>
+      <div>
         <Form form={form}>
           <Grid.Row>
             <Grid.Col span={8}>

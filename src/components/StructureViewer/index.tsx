@@ -5,18 +5,111 @@ import {
 import { createPluginUI } from "molstar/lib/mol-plugin-ui";
 import { renderReact18 } from "molstar/lib/mol-plugin-ui/react18";
 import { PluginConfig } from "molstar/lib/mol-plugin/config";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import "molstar/lib/mol-plugin-ui/skin/light.scss";
+import {
+  Checkbox,
+  Layout,
+  Link,
+  Tree,
+  Typography,
+} from "@arco-design/web-react";
+import {
+  clearHighlights,
+  highlightResidues,
+  focusResidues,
+  focusChains,
+  highlightChains,
+  loadPdb,
+  loadSdf,
+  toggleMoleculeVisibility,
+  getSequenceData,
+  getTreeDataFromSequence,
+  toggleMeasurementVisibility,
+  highlightMeasurement,
+} from "@/utils/viewer";
+import { IconDelete, IconPlus } from "@arco-design/web-react/icon";
+import { parseInt } from "lodash";
 
 const MySpec: PluginUISpec = {
   ...DefaultPluginUISpec(),
-  config: [[PluginConfig.VolumeStreaming.Enabled, false]],
+  config: [
+    [PluginConfig.Viewport.ShowControls, true],
+    [PluginConfig.Viewport.ShowExpand, false],
+    [PluginConfig.Viewport.ShowSelectionMode, false],
+    [PluginConfig.Viewport.ShowSettings, false],
+    [PluginConfig.Viewport.ShowTrajectoryControls, false],
+    [PluginConfig.Viewport.ShowAnimation, false],
+    [PluginConfig.Viewport.ShowScreenshotControls, false],
+  ],
+  components: {
+    viewport: {
+      controls: () => null,
+    },
+    controls: {
+      top: "none",
+      bottom: "none",
+      left: "none",
+      right: "none",
+    },
+    selectionTools: {
+      controls: () => null,
+    },
+  },
 };
 
 const StructureViewer = () => {
-  const parentRef = useRef<HTMLDivElement>(null);
-  const pluginRef = useRef<PluginUIContext | null>(null);
+  const parent = useRef<HTMLDivElement>(null);
+  const [plugin, setPlugin] = useState<PluginUIContext>();
+  const [sequence, setSequence] = useState<Record<string, string[]>>();
+  const [proteinStructureMap, setPorteinStructureMap] = useState<
+    Record<string, any>
+  >({});
+  const [ligandStructureMap, setLigandStructureMap] = useState<
+    Record<string, any>
+  >({});
+  const [proteinTreeData, setProteinTreeData] = useState<any>([]);
+  const [ligandTreeData, setLigandTreeData] = useState(() => {
+    const ligandTreeData = [
+      {
+        key: "/PCG_ideal.sdf",
+        title: "PCG",
+        checkable: true,
+      },
+      {
+        key: "/HEM_ideal.sdf",
+        title: "HEM",
+        checkable: true,
+      },
+    ];
+    return ligandTreeData;
+  });
+  const [measurementTreeData, setMeasurementTreeData] = useState(() => {
+    const measurementTreeData = [
+      {
+        key: "Distance",
+        title: "Distance",
+        children: [],
+      },
+      {
+        key: "Angle",
+        title: "Angle",
+        children: [],
+      },
+      {
+        key: "Diherdral",
+        title: "Diherdral",
+        children: [],
+      },
+    ];
+    return measurementTreeData;
+  });
+  const [selectLocis, setSelectLocis] = useState([]);
+  const [selectMode, setSelectMode] = useState(false);
+  const [measurementRefs, setMeasurementRefs] = useState<Record<string, any>>(
+    {},
+  );
 
   async function createPlugin(parent: HTMLElement) {
     const plugin = await createPluginUI({
@@ -24,46 +117,284 @@ const StructureViewer = () => {
       spec: MySpec,
       render: renderReact18,
     });
-    pluginRef.current = plugin;
+    await initTreeData(plugin);
+    setPlugin(plugin);
+  }
 
-    const data = await plugin.builders.data.download(
-      { url: "https://files.rcsb.org/download/2GMX.pdb" },
-      { state: { isGhost: true } }
-    );
-    const trajectory = await plugin.builders.structure.parseTrajectory(
-      data,
-      "pdb"
-    );
-    const res = await plugin.builders.structure.hierarchy.applyPreset(
-      trajectory,
-      "default"
-    )!;
+  async function initTreeData(plugin: PluginUIContext) {
+    const proteins = ["7PZB"];
+    const proteinTreeData: any = [];
+    const map = {};
+    for (let pdbId of proteins) {
+      const structure = await loadPdb(plugin, pdbId);
+      map[pdbId] = structure;
+      const { entityId, sequence } = getSequenceData(structure.data!);
+      const treeData = getTreeDataFromSequence(entityId, sequence);
+      proteinTreeData.push(treeData);
+    }
+    setPorteinStructureMap(map);
+    setProteinTreeData(proteinTreeData);
+  }
 
-    await plugin.builders.structure.representation.addRepresentation(
-      // res.representation.components.polymer,
-      res.structure,
-      {
-        type: "line",
-        color: "element-symbol",
-        // typeParams: {
-        //   ignoreHydrogens: false,
-        //   ignoreHydrogensVariant: "non-polar",
-        // },
-      }
+  async function addMeasurement(
+    plugin: PluginUIContext,
+    locis: any[],
+    type: string,
+  ) {
+    let res;
+    if (locis.length === 2 && type === "Distance") {
+      res = await plugin.managers.structure.measurement.addDistance(
+        locis[0],
+        locis[1],
+      );
+    } else if (locis.length === 3 && type === "Angle") {
+      res = await plugin.managers.structure.measurement.addAngle(
+        locis[0],
+        locis[1],
+        locis[2],
+      );
+    } else if (locis.length === 4 && type === "Diherdral") {
+      res = await plugin.managers.structure.measurement.addDihedral(
+        locis[0],
+        locis[1],
+        locis[2],
+        locis[3],
+      );
+    }
+    const selRef = res?.selection.ref!;
+    const repRef = res?.representation.ref!;
+    const measurements = measurementTreeData.find((m) => m.key === type);
+    const children = measurements?.children!;
+    const num =
+      children.length === 0
+        ? 1
+        : parseInt(children[children.length - 1].key.split(" ")[1]) + 1;
+    const key = `${type} ${num}`;
+    setMeasurementTreeData(
+      measurementTreeData.map((m: any) => {
+        if (m.key === type) {
+          return {
+            ...m,
+            children: [...m.children, { key, title: key, checkable: true }],
+          };
+        } else {
+          return m;
+        }
+      }),
     );
+    setMeasurementRefs({ ...measurementRefs, [key]: { selRef, repRef } });
   }
 
   useEffect(() => {
-    if (!parentRef.current) return;
-    createPlugin(parentRef.current);
+    createPlugin(parent.current as HTMLDivElement);
 
     return () => {
-      const plugin = pluginRef.current;
       plugin?.dispose();
     };
   }, []);
 
-  return <div ref={parentRef} style={{ width: 800, height: 600 }}></div>;
+  return (
+    <Layout style={{ height: "100%" }}>
+      <Layout.Sider style={{ width: 300, padding: 20 }}>
+        <div>
+          <label>Protein:</label>
+          <Tree
+            treeData={proteinTreeData}
+            autoExpandParent={false}
+            blockNode
+            onSelect={(_, { selectedNodes }) => {
+              const key = selectedNodes[0].key;
+              const data = key!.split(":");
+              const chainId = data[0];
+
+              if (data.length === 3) {
+                const residueId = Number(data[2].split(" ")[1]);
+                focusResidues({
+                  plugin,
+                  auth_asym_ids: [chainId],
+                  auth_seq_ids: [residueId],
+                });
+              } else if (data.length === 2) {
+                focusChains({
+                  plugin,
+                  auth_asym_ids: [chainId],
+                });
+              }
+            }}
+            renderTitle={(props) => {
+              return (
+                <div
+                  onMouseEnter={() => {
+                    const data = props._key!.split(":");
+
+                    if (data.length === 3) {
+                      const chainId = data[0],
+                        residueId = Number(data[2].split(" ")[1]);
+                      highlightResidues({
+                        plugin,
+                        auth_asym_ids: [chainId],
+                        auth_seq_ids: [residueId],
+                      });
+                    } else if (data.length === 2) {
+                      const chainId = data[0];
+                      highlightChains({
+                        plugin,
+                        auth_asym_ids: [chainId],
+                      });
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    clearHighlights(plugin);
+                  }}
+                >
+                  <Typography.Ellipsis style={{ maxWidth: 210 }}>
+                    {props.title}
+                  </Typography.Ellipsis>
+                </div>
+              );
+            }}
+            renderExtra={(props) => {
+              const data = props._key!.split(":");
+              if (data.length === 1) {
+                return (
+                  <Link
+                    hoverable={false}
+                    style={{ height: 32, lineHeight: "32px" }}
+                  >
+                    <IconDelete />
+                  </Link>
+                );
+              }
+            }}
+            onCheck={async (checkedKeys, { checked, node }) => {
+              const key = node.key!;
+              if (checked) {
+                // 已加载
+                if (proteinStructureMap[key]) {
+                  toggleMoleculeVisibility(plugin, proteinStructureMap[key]);
+                  return;
+                }
+                // 未加载
+                const structure = await loadPdb(plugin, key);
+                setPorteinStructureMap({
+                  ...proteinStructureMap,
+                  [key]: structure,
+                });
+                const { entityId, sequence } = getSequenceData(structure.data!);
+                const treeData = getTreeDataFromSequence(entityId, sequence);
+                setProteinTreeData([...proteinTreeData, treeData]);
+              } else {
+                toggleMoleculeVisibility(plugin, proteinStructureMap[key]);
+              }
+            }}
+          />
+        </div>
+        <div style={{ margin: "30px 0" }}>
+          <label>Ligand:</label>
+          <Tree
+            treeData={ligandTreeData}
+            autoExpandParent={false}
+            blockNode
+            renderExtra={(props) => {
+              return (
+                <Link
+                  hoverable={false}
+                  style={{ height: 32, lineHeight: "32px" }}
+                >
+                  <IconDelete />
+                </Link>
+              );
+            }}
+            onCheck={async (checkedKeys, { checked, node }) => {
+              const key = node.key!;
+              if (checked) {
+                // 已加载
+                if (ligandStructureMap[key]) {
+                  toggleMoleculeVisibility(plugin, ligandStructureMap[key]);
+                  return;
+                }
+                // 未加载
+                const structure = await loadSdf(plugin, key);
+                setLigandStructureMap({
+                  ...ligandStructureMap,
+                  [key]: structure,
+                });
+              } else {
+                toggleMoleculeVisibility(plugin, ligandStructureMap[key]);
+              }
+            }}
+          />
+        </div>
+        <div>
+          <label>Measurement:</label>
+          <div style={{ margin: "20px 0" }}>
+            <Checkbox
+              checked={selectMode}
+              onChange={(c) => {
+                setSelectMode(c);
+                plugin!.selectionMode = c;
+                plugin!.behaviors.interaction.click.subscribe(({ current }) => {
+                  if (current.loci.kind === "empty-loci") return;
+                  setSelectLocis((selectLocis) => {
+                    return [...selectLocis, current.loci];
+                  });
+                });
+              }}
+            >
+              Selection Mode
+            </Checkbox>
+          </div>
+          <Tree
+            treeData={measurementTreeData}
+            blockNode
+            renderExtra={(props) => {
+              if (!props.checkable) {
+                return (
+                  <Link
+                    style={{ height: 32, lineHeight: "32px" }}
+                    hoverable={false}
+                    onClick={() => {
+                      addMeasurement(plugin, selectLocis, props._key);
+                      setSelectLocis([]);
+                    }}
+                  >
+                    <IconPlus />
+                  </Link>
+                );
+              }
+            }}
+            onCheck={(_, { node, checked }) => {
+              const res = measurementRefs[node.key];
+              toggleMeasurementVisibility(plugin, res?.repRef, checked);
+            }}
+            renderTitle={(props) => {
+              const res = measurementRefs[props._key];
+              return (
+                <div
+                  onMouseEnter={() => {
+                    highlightMeasurement(plugin, res?.selRef);
+                  }}
+                  onMouseLeave={() => {
+                    clearHighlights(plugin);
+                  }}
+                >
+                  <Typography.Ellipsis style={{ maxWidth: 210 }}>
+                    {props.title}
+                  </Typography.Ellipsis>
+                </div>
+              );
+            }}
+          />
+        </div>
+      </Layout.Sider>
+      <Layout.Content>
+        <div
+          ref={parent}
+          style={{ width: "100%", height: "100%", position: "relative" }}
+        ></div>
+      </Layout.Content>
+    </Layout>
+  );
 };
 
 export default StructureViewer;
