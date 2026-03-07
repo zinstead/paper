@@ -48,23 +48,6 @@ const Fep = () => {
     perturbationMap: PerturbationMap,
   };
 
-  const tabComponents = {
-    leftHeader: LeftHeader,
-  };
-
-  function LeftHeader() {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <div>Entry List</div>
-      </div>
-    );
-  }
-
   function LeftPanel() {
     const [treeData, setTreeData] = useState<any>([
       {
@@ -78,7 +61,7 @@ const Fep = () => {
             type: "ligand",
           },
         ],
-        open: false,
+        open: true,
         type: "protein",
       },
       {
@@ -145,12 +128,13 @@ const Fep = () => {
 
     function handleClickEye(params: { type: string; id: string }) {
       const { id, type } = params;
+      const title = "Structure Viewer";
       if (type === "protein") {
-        openRightTab(id, id, "structureViewer");
+        openRightTab(id, title, "structureViewer");
       } else if (type === "ligand") {
-        openRightTab(id, id, "structureViewer");
+        openRightTab(id, title, "structureViewer");
       } else if (type === "perturbationMap") {
-        openRightTab(id, id, "perturbationMap");
+        openRightTab(id, title, "perturbationMap");
       }
       toggleOpen(id);
     }
@@ -254,7 +238,6 @@ const Fep = () => {
       title: "左侧固定面板",
       minimumWidth: 300,
       maximumWidth: 300,
-      tabComponent: "leftHeader",
     });
 
     // 右侧初始 panel group
@@ -394,7 +377,6 @@ const Fep = () => {
         <div className={styles.container}>
           <DockviewReact
             components={components}
-            tabComponents={tabComponents}
             onReady={handleReady}
             theme={themeLight}
             rightHeaderActionsComponent={RightControls}

@@ -35,7 +35,6 @@ export async function loadSdf(plugin: PluginUIContext, url: string) {
     { url },
     { state: { isGhost: true } },
   );
-
   const trajectory = await plugin.builders.structure.parseTrajectory(
     data,
     "sdf",
@@ -44,8 +43,20 @@ export async function loadSdf(plugin: PluginUIContext, url: string) {
     trajectory,
     "default",
   )!;
-
   return res.structure;
+
+  // const model = await plugin.builders.structure.createModel(trajectory);
+  // const structure = await plugin.builders.structure.createStructure(model);
+  // await plugin.builders.structure.representation.addRepresentation(structure, {
+  //   type: "ball-and-stick",
+  //   color: "uniform",
+  //   typeParams: {
+  //     sizeFactor: 0.1,
+  //     sizeAspectRatio: 2.0, // 增粗 bond
+  //     tryUseImpostor: true,
+  //   },
+  // });
+  // return structure.cell?.obj?.data;
 }
 
 export async function loadPdb(plugin: PluginUIContext, pdbId: string) {
@@ -63,17 +74,10 @@ export async function loadPdb(plugin: PluginUIContext, pdbId: string) {
     trajectory,
     "default",
   )!;
-
   await plugin.builders.structure.representation.addRepresentation(
-    // res.representation.components.polymer,
     res.structure,
     {
       type: "line",
-      color: "element-symbol",
-      // typeParams: {
-      //   ignoreHydrogens: false,
-      //   ignoreHydrogensVariant: "non-polar",
-      // },
     },
   );
 

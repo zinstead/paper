@@ -199,6 +199,7 @@ const StructureViewer = () => {
         <div>
           <label>Protein:</label>
           <Tree
+            defaultCheckedKeys={["7PZB"]}
             treeData={proteinTreeData}
             autoExpandParent={false}
             blockNode
