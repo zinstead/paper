@@ -209,6 +209,8 @@ actionDispatcher.register("unknown", (parameters: { reason: string }) => {
 
 actionDispatcher.register("activePanelChange", () => {});
 
+actionDispatcher.register("movePanel", () => {});
+
 actionDispatcher.register(
   "panelStateChange",
   (parameters: { panelId: string; [key: string]: any }) => {
@@ -275,6 +277,13 @@ const DockviewContainer = () => {
           actionDispatcher.dispatch({
             type: "removePanel",
             parameters: { panel },
+          });
+        });
+
+        api.onDidMovePanel((e) => {
+          actionDispatcher.dispatch({
+            type: "movePanel",
+            parameters: {},
           });
         });
 
