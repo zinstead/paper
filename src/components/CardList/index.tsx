@@ -5,25 +5,28 @@ import {
   Button,
   Collapse,
   Drawer,
+  List,
   Pagination,
   Space,
 } from "@arco-design/web-react";
 import { useState } from "react";
 import { columns } from "../../constant";
 import NumericalProperty from "../NumericalProperty";
-import { IconDelete } from "@arco-design/web-react/icon";
-import EditorModal from "@/components/EditorModal";
+import { IconDelete, IconSettings } from "@arco-design/web-react/icon";
 import DndWrapper from "@/components/DndWrapper";
 import ColorSettingsDrawer from "../ColorSettingsDrawer";
 import { properties } from "@/constant";
+import SubstructureEditor from "../SubstructureEditor";
 
 export default function CardList() {
   const cardList = useCardDataStore((state) => state.cardList);
   const setCardList = useCardDataStore((state) => state.setCardList);
-  const [visible, setVisible] = useState(false);
+  const [editorVisible, setEditorVisible] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
 
   const [pageNum, setPageNum] = useState(1);
-  const [pageSize, setPageSize] = useState(30);
+  const [pageSize, setPageSize] = useState(10);
+  const [columnCount, setColumnCount] = useState(4);
 
   const moveCard = (dragIndex: number, dropIndex: number) => {
     if (cardList[dragIndex].locked || cardList[dropIndex].locked) return;
@@ -45,21 +48,24 @@ export default function CardList() {
     );
   };
 
+  const onSearch = (smarts: string) => {
+    console.log(smarts);
+  };
+
   return (
-    <div style={{ margin: 20 }}>
+    <div style={{ padding: 20 }}>
       <Space size={16}>
         <Button
           onClick={() => {
-            setVisible(true);
+            setSettingsVisible(true);
           }}
-          type="primary"
           style={{ marginBottom: 10 }}
-        >
-          颜色编码控制
-        </Button>
+          type="primary"
+          icon={<IconSettings />}
+        ></Button>
         <Button
           onClick={() => {
-            setVisible(true);
+            setEditorVisible(true);
           }}
           type="primary"
           style={{ marginBottom: 10 }}
@@ -68,7 +74,14 @@ export default function CardList() {
         </Button>
       </Space>
       <DndWrapper>
-        <div className={styles.cardList}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${columnCount},1fr)`,
+            columnGap: "16px",
+            rowGap: "16px",
+          }}
+        >
           {cardList
             .slice((pageNum - 1) * pageSize, pageNum * pageSize)
             .map((card, index) => (
@@ -96,15 +109,21 @@ export default function CardList() {
       </div>
       <ColorSettingsDrawer
         properties={properties}
-        visible={visible}
+        visible={settingsVisible}
         onCancel={() => {
-          setVisible(false);
+          setSettingsVisible(false);
         }}
         onConfirm={() => {
-          setVisible(false);
+          setSettingsVisible(false);
         }}
       />
-      <EditorModal />
+      <SubstructureEditor
+        visible={editorVisible}
+        onCancel={() => {
+          setEditorVisible(false);
+        }}
+        onSearch={onSearch}
+      />
     </div>
   );
 }

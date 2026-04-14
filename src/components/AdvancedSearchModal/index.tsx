@@ -13,11 +13,12 @@ import { IconDelete, IconPlus } from "@arco-design/web-react/icon";
 
 const AdvancedSearchModal = (props: {
   visible: boolean;
+  title: string;
   onCancel: () => void;
   onSearch: (searchRules: SearchRule[]) => void;
   searchProperties: string[];
 }) => {
-  const { visible, onCancel, onSearch, searchProperties } = props;
+  const { visible, title, onCancel, onSearch, searchProperties } = props;
   const [form] = useForm();
 
   const onConfirm = () => {
@@ -28,7 +29,7 @@ const AdvancedSearchModal = (props: {
 
   return (
     <Modal
-      title={"高级检索"}
+      title={title}
       visible={visible}
       onCancel={onCancel}
       onOk={onConfirm}
@@ -56,19 +57,19 @@ const AdvancedSearchModal = (props: {
                   <Form.Item field={`${field.field}.property`}>
                     <Select
                       style={{ width: 200 }}
-                      placeholder="属性"
+                      placeholder="property"
                       options={searchProperties}
                     ></Select>
                   </Form.Item>
                   <Form.Item field={`${field.field}.operator`}>
                     <Select
                       style={{ width: 200 }}
-                      placeholder="操作符"
+                      placeholder="operator"
                       options={operators}
                     ></Select>
                   </Form.Item>
                   <Form.Item field={`${field.field}.value`}>
-                    <Input style={{ width: 200 }} placeholder="值"></Input>
+                    <Input style={{ width: 200 }} placeholder="value"></Input>
                   </Form.Item>
                   <Form.Item>
                     <Button

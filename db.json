@@ -1,1 +1,636 @@
-{}
+{
+  "projects": [
+    {
+      "id": "101",
+      "name": "ligand1",
+      "description": "First ligand",
+      "owners": [
+        "zhangsan"
+      ],
+      "operators": [
+        "lisi"
+      ],
+      "viewers": [
+        "wangwu"
+      ]
+    },
+    {
+      "id": "102",
+      "name": "ligand2",
+      "description": "Second ligand",
+      "owners": [
+        "zhaoliu"
+      ],
+      "operators": [
+        "tianqi"
+      ],
+      "viewers": [
+        "wangba"
+      ]
+    },
+    {
+      "id": "103",
+      "name": "ligand3",
+      "description": "Third ligand",
+      "owners": [
+        "zhangsan"
+      ],
+      "operators": [
+        "wangwu"
+      ],
+      "viewers": [
+        "zhaoliu"
+      ]
+    },
+    {
+      "id": "104",
+      "name": "ligand4",
+      "description": "Fourth ligand",
+      "owners": [
+        "tianqi"
+      ],
+      "operators": [
+        "zhangsan"
+      ],
+      "viewers": [
+        "lisi"
+      ]
+    },
+    {
+      "id": "105",
+      "name": "ligand5",
+      "description": "Fifth ligand",
+      "owners": [
+        "wangwu"
+      ],
+      "operators": [
+        "tianqi"
+      ],
+      "viewers": [
+        "zhangsan"
+      ]
+    },
+    {
+      "id": "106",
+      "name": "ligand6",
+      "description": "Sixth ligand",
+      "owners": [
+        "zhangsan"
+      ],
+      "operators": [
+        "lisi"
+      ],
+      "viewers": [
+        "tianqi"
+      ]
+    },
+    {
+      "id": "107",
+      "name": "ligand7",
+      "description": "Seventh ligand",
+      "owners": [
+        "zhaoliu"
+      ],
+      "operators": [
+        "zhangsan"
+      ],
+      "viewers": [
+        "lisi"
+      ]
+    },
+    {
+      "id": "108",
+      "name": "ligand8",
+      "description": "Eighth ligand",
+      "owners": [
+        "tianqi"
+      ],
+      "operators": [
+        "zhaoliu"
+      ],
+      "viewers": [
+        "wangwu"
+      ]
+    },
+    {
+      "id": "109",
+      "name": "ligand9",
+      "description": "Ninth ligand",
+      "owners": [
+        "lisi"
+      ],
+      "operators": [
+        "wangwu"
+      ],
+      "viewers": [
+        "zhaoliu"
+      ]
+    },
+    {
+      "id": "110",
+      "name": "ligand10",
+      "description": "Tenth ligand",
+      "owners": [
+        "wangwu"
+      ],
+      "operators": [
+        "tianqi"
+      ],
+      "viewers": [
+        "zhangsan"
+      ]
+    },
+    {
+      "id": "111",
+      "name": "ligand11",
+      "description": "Eleventh ligand",
+      "owners": [
+        "zhangsan"
+      ],
+      "operators": [
+        "wangwu"
+      ],
+      "viewers": [
+        "tianqi"
+      ]
+    },
+    {
+      "id": "112",
+      "name": "ligand12",
+      "description": "Twelfth ligand",
+      "owners": [
+        "tianqi"
+      ],
+      "operators": [
+        "zhangsan"
+      ],
+      "viewers": [
+        "zhaoliu"
+      ]
+    },
+    {
+      "id": "113",
+      "name": "ligand13",
+      "description": "Thirteenth ligand",
+      "owners": [
+        "lisi"
+      ],
+      "operators": [
+        "tianqi"
+      ],
+      "viewers": [
+        "zhangsan"
+      ]
+    },
+    {
+      "id": "114",
+      "name": "ligand14",
+      "description": "Fourteenth ligand",
+      "owners": [
+        "zhaoliu"
+      ],
+      "operators": [
+        "zhangsan"
+      ],
+      "viewers": [
+        "lisi"
+      ]
+    },
+    {
+      "id": "115",
+      "name": "ligand15",
+      "description": "Fifteenth ligand",
+      "owners": [
+        "zhangsan"
+      ],
+      "operators": [
+        "zhaoliu"
+      ],
+      "viewers": [
+        "wangwu"
+      ]
+    },
+    {
+      "id": "116",
+      "name": "ligand16",
+      "description": "Sixteenth ligand",
+      "owners": [
+        "wangwu"
+      ],
+      "operators": [
+        "zhangsan"
+      ],
+      "viewers": [
+        "zhaoliu"
+      ]
+    },
+    {
+      "id": "117",
+      "name": "ligand17",
+      "description": "Seventeenth ligand",
+      "owners": [
+        "lisi"
+      ],
+      "operators": [
+        "tianqi"
+      ],
+      "viewers": [
+        "zhangsan"
+      ]
+    },
+    {
+      "id": "118",
+      "name": "ligand18",
+      "description": "Eighteenth ligand",
+      "owners": [
+        "zhaoliu"
+      ],
+      "operators": [
+        "lisi"
+      ],
+      "viewers": [
+        "tianqi"
+      ]
+    },
+    {
+      "id": "119",
+      "name": "ligand19",
+      "description": "Nineteenth ligand",
+      "owners": [
+        "tianqi"
+      ],
+      "operators": [
+        "zhaoliu"
+      ],
+      "viewers": [
+        "lisi"
+      ]
+    },
+    {
+      "id": "120",
+      "name": "ligand20",
+      "description": "Twentieth ligand",
+      "owners": [
+        "zhangsan"
+      ],
+      "operators": [
+        "tianqi"
+      ],
+      "viewers": [
+        "zhaoliu"
+      ]
+    },
+    {
+      "id": "121",
+      "name": "ligand21",
+      "description": "Twenty-first ligand",
+      "owners": [
+        "lisi"
+      ],
+      "operators": [
+        "wangwu"
+      ],
+      "viewers": [
+        "tianqi"
+      ]
+    },
+    {
+      "id": "122",
+      "name": "ligand22",
+      "description": "Twenty-second ligand",
+      "owners": [
+        "wangwu"
+      ],
+      "operators": [
+        "zhangsan"
+      ],
+      "viewers": [
+        "lisi"
+      ]
+    },
+    {
+      "id": "123",
+      "name": "ligand23",
+      "description": "Twenty-third ligand",
+      "owners": [
+        "tianqi"
+      ],
+      "operators": [
+        "zhaoliu"
+      ],
+      "viewers": [
+        "zhangsan"
+      ]
+    },
+    {
+      "id": "124",
+      "name": "ligand24",
+      "description": "Twenty-fourth ligand",
+      "owners": [
+        "zhangsan"
+      ],
+      "operators": [
+        "wangwu"
+      ],
+      "viewers": [
+        "zhaoliu"
+      ]
+    },
+    {
+      "id": "125",
+      "name": "ligand25",
+      "description": "Twenty-fifth ligand",
+      "owners": [
+        "zhaoliu"
+      ],
+      "operators": [
+        "lisi"
+      ],
+      "viewers": [
+        "tianqi"
+      ]
+    },
+    {
+      "id": "126",
+      "name": "ligand26",
+      "description": "Twenty-sixth ligand",
+      "owners": [
+        "lisi"
+      ],
+      "operators": [
+        "zhaoliu"
+      ],
+      "viewers": [
+        "zhangsan"
+      ]
+    },
+    {
+      "id": "127",
+      "name": "ligand27",
+      "description": "Twenty-seventh ligand",
+      "owners": [
+        "tianqi"
+      ],
+      "operators": [
+        "zhangsan"
+      ],
+      "viewers": [
+        "wangwu"
+      ]
+    },
+    {
+      "id": "128",
+      "name": "ligand28",
+      "description": "Twenty-eighth ligand",
+      "owners": [
+        "zhangsan"
+      ],
+      "operators": [
+        "tianqi"
+      ],
+      "viewers": [
+        "lisi"
+      ]
+    },
+    {
+      "id": "129",
+      "name": "ligand29",
+      "description": "Twenty-ninth ligand",
+      "owners": [
+        "zhaoliu"
+      ],
+      "operators": [
+        "wangwu"
+      ],
+      "viewers": [
+        "zhangsan"
+      ]
+    },
+    {
+      "id": "130",
+      "name": "ligand30",
+      "description": "Thirtieth ligand",
+      "owners": [
+        "wangwu"
+      ],
+      "operators": [
+        "zhangsan"
+      ],
+      "viewers": [
+        "zhaoliu"
+      ]
+    },
+    {
+      "id": "f7b6",
+      "name": "test1",
+      "description": "测试项目1",
+      "owners": [
+        "alan"
+      ],
+      "operators": [
+        "jack"
+      ],
+      "viewers": [
+        "tom"
+      ]
+    },
+    {
+      "id": "9e61",
+      "name": "test2",
+      "description": "测试项目2",
+      "owners": [
+        "jerry"
+      ],
+      "operators": [
+        "jack"
+      ],
+      "viewers": [
+        "tom"
+      ]
+    },
+    {
+      "id": "119f",
+      "name": "test3",
+      "description": "测试项目3",
+      "owners": [
+        "lucy"
+      ],
+      "operators": [
+        "jack"
+      ],
+      "viewers": [
+        "tom"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "1",
+      "name": "alan"
+    },
+    {
+      "id": "2",
+      "name": "jack"
+    },
+    {
+      "id": "3",
+      "name": "mike"
+    },
+    {
+      "id": "4",
+      "name": "lucy"
+    },
+    {
+      "id": "5",
+      "name": "jerry"
+    },
+    {
+      "id": "6",
+      "name": "tom"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "201",
+      "name": "task 1",
+      "description": "test 1",
+      "type": "MD",
+      "status": "running",
+      "creator": "zhangsan",
+      "createTime": "2025-09-02"
+    },
+    {
+      "id": "202",
+      "name": "task 2",
+      "description": "test 2",
+      "type": "ABFEP",
+      "status": "success",
+      "creator": "lisi",
+      "createTime": "2025-09-03"
+    },
+    {
+      "id": "203",
+      "name": "task 3",
+      "description": "test 3",
+      "type": "RBFEP",
+      "status": "failed",
+      "creator": "wangwu",
+      "createTime": "2025-09-04"
+    },
+    {
+      "id": "204",
+      "name": "task 4",
+      "description": "test 4",
+      "type": "MD",
+      "status": "stopped",
+      "creator": "zhaoliu",
+      "createTime": "2025-09-05"
+    },
+    {
+      "id": "205",
+      "name": "task 5",
+      "description": "test 5",
+      "type": "ABFEP",
+      "status": "running",
+      "creator": "sunqi",
+      "createTime": "2025-09-06"
+    },
+    {
+      "id": "206",
+      "name": "task 6",
+      "description": "test 6",
+      "type": "RBFEP",
+      "status": "success",
+      "creator": "zhouba",
+      "createTime": "2025-09-07"
+    },
+    {
+      "id": "207",
+      "name": "task 7",
+      "description": "test 7",
+      "type": "MD",
+      "status": "failed",
+      "creator": "wujiu",
+      "createTime": "2025-09-08"
+    },
+    {
+      "id": "208",
+      "name": "task 8",
+      "description": "test 8",
+      "type": "ABFEP",
+      "status": "stopped",
+      "creator": "zhengshi",
+      "createTime": "2025-09-09"
+    },
+    {
+      "id": "209",
+      "name": "task 9",
+      "description": "test 9",
+      "type": "RBFEP",
+      "status": "running",
+      "creator": "chenshiyi",
+      "createTime": "2025-09-10"
+    },
+    {
+      "id": "210",
+      "name": "task 10",
+      "description": "test 10",
+      "type": "MD",
+      "status": "success",
+      "creator": "linshi'er",
+      "createTime": "2025-09-11"
+    },
+    {
+      "id": "211",
+      "name": "task 11",
+      "description": "test 11",
+      "type": "ABFEP",
+      "status": "failed",
+      "creator": "guoshi_san",
+      "createTime": "2025-09-12"
+    },
+    {
+      "id": "212",
+      "name": "task 12",
+      "description": "test 12",
+      "type": "RBFEP",
+      "status": "stopped",
+      "creator": "xushisi",
+      "createTime": "2025-09-13"
+    }
+  ],
+  "ligands": [
+    {
+      "id": "L001",
+      "ΔG": -8.5,
+      "error": 0.7,
+      "MW": 450,
+      "logP": 3.2
+    },
+    {
+      "id": "L002",
+      "ΔG": -7.8,
+      "error": 0.5,
+      "MW": 480,
+      "logP": 2.9
+    },
+    {
+      "id": "L003",
+      "ΔG": -9.1,
+      "error": 0.6,
+      "MW": 420,
+      "logP": 3.5
+    }
+  ],
+  "workspaces": [
+    {
+      "id": "dcf8",
+      "name": "workspace1",
+      "description": "第一个工作区",
+      "creator": "alan",
+      "createTime": 1776092083791,
+      "updateTime": 1776092083791,
+      "state": "{\"layout\":{\"grid\":{\"root\":{\"type\":\"branch\",\"data\":[{\"type\":\"leaf\",\"data\":{\"views\":[\"ProjectList\",\"EntryList-789\",\"TaskList-789\"],\"activeView\":\"ProjectList\",\"id\":\"1\"},\"size\":1306.65625}],\"size\":898},\"width\":1306.65625,\"height\":898,\"orientation\":\"HORIZONTAL\"},\"panels\":{\"ProjectList\":{\"id\":\"ProjectList\",\"contentComponent\":\"ProjectList\",\"title\":\"ProjectList\"},\"EntryList-789\":{\"id\":\"EntryList-789\",\"contentComponent\":\"EntryList\",\"title\":\"EntryList (project:789)\"},\"TaskList-789\":{\"id\":\"TaskList-789\",\"contentComponent\":\"TaskList\",\"title\":\"TaskList (project:789)\"}},\"activeGroup\":\"1\"},\"panelStates\":{\"ProjectList\":{\"pagination\":{\"current\":2,\"pageSize\":10,\"total\":33},\"projectType\":\"starred\"},\"EntryList-789\":{\"projectId\":789},\"TaskList-789\":{\"projectId\":789}},\"uiContext\":{\"projectId\":789},\"agentMessages\":[{\"role\":\"system\",\"content\":\"当前界面状态：{}\"},{\"role\":\"user\",\"content\":\"打开项目列表\"},{\"role\":\"assistant\",\"content\":\"{\\\"type\\\":\\\"showProjectList\\\",\\\"parameters\\\":{}}\"},{\"role\":\"system\",\"content\":\"当前界面状态：{\\\"activePanel\\\":{\\\"id\\\":\\\"ProjectList\\\",\\\"component\\\":\\\"ProjectList\\\",\\\"state\\\":{\\\"pagination\\\":{\\\"current\\\":1,\\\"pageSize\\\":10,\\\"total\\\":33},\\\"projectType\\\":\\\"starred\\\"}}}\"},{\"role\":\"user\",\"content\":\"打开项目789的entry list\"},{\"role\":\"assistant\",\"content\":\"{\\\"type\\\":\\\"showEntryList\\\",\\\"parameters\\\":{\\\"projectId\\\":789}}\"},{\"role\":\"system\",\"content\":\"当前界面状态：{\\\"projectId\\\":789,\\\"activePanel\\\":{\\\"id\\\":\\\"EntryList-789\\\",\\\"component\\\":\\\"EntryList\\\",\\\"state\\\":{\\\"projectId\\\":789}}}\"},{\"role\":\"user\",\"content\":\"打开任务列表\"},{\"role\":\"assistant\",\"content\":\"{\\\"type\\\":\\\"missingParameters\\\",\\\"parameters\\\":{\\\"query\\\":\\\"缺少参数，请提供项目ID\\\"}}\"},{\"role\":\"system\",\"content\":\"当前界面状态：{\\\"projectId\\\":789,\\\"activePanel\\\":{\\\"id\\\":\\\"EntryList-789\\\",\\\"component\\\":\\\"EntryList\\\",\\\"state\\\":{\\\"projectId\\\":789}}}\"},{\"role\":\"user\",\"content\":\"789\"},{\"role\":\"assistant\",\"content\":\"{\\\"type\\\":\\\"showTaskList\\\",\\\"parameters\\\":{\\\"projectId\\\":789}}\"}],\"chatMessages\":[{\"role\":\"user\",\"content\":\"打开项目列表\"},{\"role\":\"user\",\"content\":\"打开项目789的entry list\"},{\"role\":\"user\",\"content\":\"打开任务列表\"},{\"role\":\"assistant\",\"content\":\"缺少参数，请提供项目ID\"},{\"role\":\"user\",\"content\":\"789\"}]}"
+    }
+  ]
+}

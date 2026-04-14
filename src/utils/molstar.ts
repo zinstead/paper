@@ -6,29 +6,51 @@ import {
 import { StructureSelectionQuery } from "molstar/lib/mol-plugin-state/helpers/structure-selection-query";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { PluginCommands } from "molstar/lib/mol-plugin/commands";
-import { MolScriptBuilder } from "molstar/lib/mol-script/language/builder";
+import {
+  MolScriptBuilder,
+  MolScriptBuilder as MS,
+} from "molstar/lib/mol-script/language/builder";
 import { Expression } from "molstar/lib/mol-script/language/expression";
 import { Color } from "molstar/lib/mol-util/color";
 
 export function getSequenceFromStructure(plugin: PluginUIContext) {
-  const result: Record<string, string[]> = {};
   const structure = plugin.managers.structure.hierarchy.current.structures[0]
     ?.cell?.obj?.data as Structure;
+
+  const chainMap = new Map<string, Map<string, any>>();
+
   Structure.eachAtomicHierarchyElement(structure, {
     residue: (loc) => {
-      const chainType = StructureProperties.entity.type(loc);
-      if (chainType === "polymer") {
-        const chainId = StructureProperties.chain.auth_asym_id(loc);
-        const residueId = StructureProperties.residue.auth_seq_id(loc);
-        const compId = StructureProperties.residue.auth_comp_id(loc);
-        if (!result[chainId]) {
-          result[chainId] = [];
-        }
-        result[chainId].push(`${compId} ${residueId}`);
+      if (StructureProperties.entity.type(loc) !== "polymer") return;
+
+      const chain = StructureProperties.chain.auth_asym_id(loc);
+      const description = StructureProperties.entity.pdbx_description(loc);
+      const residue = StructureProperties.residue.auth_seq_id(loc);
+      const comp = StructureProperties.residue.auth_comp_id(loc);
+      const insCode = StructureProperties.residue.pdbx_PDB_ins_code(loc) || "";
+
+      if (!chainMap.has(chain)) {
+        chainMap.set(chain, new Map());
+      }
+
+      const residues = chainMap.get(chain)!;
+      const key = `${residue}_${insCode}`;
+
+      if (!residues.has(key)) {
+        residues.set(key, {
+          chain,
+          residue,
+          comp,
+          insCode,
+        });
       }
     },
   });
-  return result;
+
+  return Array.from(chainMap.entries()).map(([chain, residues]) => ({
+    chain,
+    residues: Array.from(residues.values()),
+  }));
 }
 
 // Modify the 3d structural color of some residues

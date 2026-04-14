@@ -15,3 +15,18 @@ export interface StatusItem {
   isSelected: boolean;
   // isFocused: boolean;
 }
+
+export type ProteinSequence = Record<
+  string,
+  {
+    description: string[];
+    residues: {
+      auth_asym_id: string;
+      auth_seq_id: number;
+      auth_comp_id: string;
+      ins_code: string;
+    }[];
+  }
+>;
+
+export type ResidueMap = Record<string, { seq_id: number; ins_code: string }[]>;

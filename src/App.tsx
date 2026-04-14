@@ -1,11 +1,14 @@
 import { useRoutes } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import "./App.css";
-import CardList from "./components/CardList";
 
 const Home = lazy(() => import("@/routes/Home/Home"));
-const Fep = lazy(() => import("@/routes/Fep/Fep"));
+const CardList = lazy(() => import("@/components/CardList"));
+const Fep = lazy(() => import("@/routes/Fep"));
+const Agent = lazy(() => import("@/routes/Agent"));
+const Page = lazy(() => import("@/routes/Page"));
 const PerturbationMap = lazy(() => import("@/components/PerturbationMap"));
+const StructureViewer = lazy(() => import("@/components/StructureViewer"));
 
 const App = () => {
   const routes = useRoutes([
@@ -14,16 +17,28 @@ const App = () => {
       element: <Home />,
     },
     {
-      path: "card",
+      path: "/card",
       element: <CardList />,
     },
     {
-      path: "map",
+      path: "/map",
       element: <PerturbationMap />,
+    },
+    {
+      path: "/structure",
+      element: <StructureViewer />,
     },
     {
       path: "/fep",
       element: <Fep />,
+    },
+    {
+      path: "/agent",
+      element: <Agent />,
+    },
+    {
+      path: "/page",
+      element: <Page />,
     },
     {
       path: "*",

@@ -1,50 +1,48 @@
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./index.module.less";
 import {
   DockviewReact,
   DockviewApi,
   themeLight,
   type DockviewReadyEvent,
+  type IDockviewPanelProps,
 } from "dockview";
 import {
   Button,
   Dropdown,
   Layout,
   Menu,
+  Popover,
   Space,
   Tree,
 } from "@arco-design/web-react";
-import { v4 as uuid } from "uuid";
 import {
-  IconApps,
-  IconBulb,
   IconClose,
   IconDown,
   IconEye,
   IconEyeInvisible,
-  IconFire,
   IconHome,
   IconLaunch,
   IconLayout,
-  IconRobot,
-  IconSafe,
   IconSave,
   IconSettings,
   IconShareAlt,
   IconUser,
 } from "@arco-design/web-react/icon";
 import RightControls from "@/components/RightControls/RightControls";
-import { dockviewJson } from "@/constant";
 import StructureViewer from "@/components/StructureViewer";
 import PerturbationMap from "@/components/PerturbationMap";
 
 const Fep = () => {
-  const apiRef = useRef<DockviewApi | null>(null);
+  const [dockviewApi, setDockviewApi] = useState<DockviewApi>();
 
   const components = {
     leftPanel: LeftPanel,
     rightPanel: RightPanel,
-    structureViewer: StructureViewer,
+    structureViewer: (props: IDockviewPanelProps) => {
+      const panelId = props.api.id;
+      return <StructureViewer panelId={panelId} />;
+    },
     perturbationMap: PerturbationMap,
   };
 
@@ -134,7 +132,7 @@ const Fep = () => {
       } else if (type === "ligand") {
         openRightTab(id, title, "structureViewer");
       } else if (type === "perturbationMap") {
-        openRightTab(id, title, "perturbationMap");
+        openRightTab(id, id, "perturbationMap");
       }
       toggleOpen(id);
     }
@@ -225,11 +223,7 @@ const Fep = () => {
 
   function handleReady(e: DockviewReadyEvent) {
     const api = e.api;
-    apiRef.current = api;
-    // if (dockviewJson) {
-    //   api.fromJSON(dockviewJson);
-    //   return;
-    // }
+    setDockviewApi(api);
 
     // 左侧固定 panel
     const leftPanel = api.addPanel({
@@ -253,7 +247,7 @@ const Fep = () => {
   }
 
   function openRightTab(id: string, title: string, component: string) {
-    const api = apiRef.current;
+    const api = dockviewApi;
     if (!api) return;
     const rightPanel = api.getPanel("rightPanel");
     if (!rightPanel) return;
@@ -273,6 +267,10 @@ const Fep = () => {
       },
     });
   }
+
+  useEffect(() => {
+    openRightTab("1EF2", "1EF2", "structureViewer");
+  }, []);
 
   return (
     <Layout>
@@ -314,16 +312,33 @@ const Fep = () => {
                 <IconLayout />
                 <span style={{ fontSize: 10 }}>View</span>
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
+              <Popover
+                position="right"
+                content={
+                  <Menu mode="pop">
+                    <Menu.SubMenu key="1" title={"RBFEP"}>
+                      <Menu.Item key="pp">Protein Prepare</Menu.Item>
+                      <Menu.Item key="la">Ligand Align</Menu.Item>
+                      <Menu.Item key="lp">Ligand Prepare</Menu.Item>
+                      <Menu.Item key="s">Submit</Menu.Item>
+                      <Menu.Item key="c">Correct</Menu.Item>
+                    </Menu.SubMenu>
+                    <Menu.SubMenu key="2" title={"ABFEP"}></Menu.SubMenu>
+                    <Menu.SubMenu key="3" title={"MD"}></Menu.SubMenu>
+                  </Menu>
+                }
               >
-                <IconLaunch />
-                <span style={{ fontSize: 10 }}>Func</span>
-              </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
+                  <IconLaunch />
+                  <span style={{ fontSize: 10 }}>Func</span>
+                </div>
+              </Popover>
               <div
                 style={{
                   display: "flex",

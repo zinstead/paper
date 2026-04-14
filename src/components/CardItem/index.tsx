@@ -73,7 +73,7 @@ export default function CardItem({
   const cardClassName = classNames(
     styles.cardItem,
     { [styles.dragging]: isDragging },
-    { [styles.hovered]: isOverShallow }
+    { [styles.hovered]: isOverShallow },
   );
 
   const lockIcon = locked ? <IconLock /> : <IconUnlock />;
@@ -88,7 +88,7 @@ export default function CardItem({
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <div>{id}</div>
         <Space>
-          <div className={styles.lockIcon}>
+          {/* <div className={styles.lockIcon}>
             <IconEdit
               onClick={() => {
                 setEditData({
@@ -98,7 +98,7 @@ export default function CardItem({
                 });
               }}
             />
-          </div>
+          </div> */}
           <div
             className={lockClassName}
             onClick={() => {
@@ -125,7 +125,7 @@ export default function CardItem({
             >
               {pageFields.map((field) => {
                 const { value } = cardData.properties.find(
-                  (item) => item.key === field
+                  (item) => item.key === field,
                 )!;
                 const background = getBackground({
                   value,
@@ -154,7 +154,7 @@ export default function CardItem({
   };
 
   return (
-    <>
+    <div>
       <motion.div ref={ref} layout className={cardClassName}>
         <CompoundCard
           id={id}
@@ -167,6 +167,6 @@ export default function CardItem({
           previewWidth={600}
         />
       </motion.div>
-    </>
+    </div>
   );
 }

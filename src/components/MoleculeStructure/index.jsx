@@ -22,13 +22,13 @@ class MoleculeStructure extends Component {
     subStructure: PropTypes.string,
     extraDetails: PropTypes.object,
     drawingDelay: PropTypes.number,
+    /**
+     *  self properties
+     */
     highlights: PropTypes.shape({
       atoms: PropTypes.arrayOf(PropTypes.number),
       bonds: PropTypes.arrayOf(PropTypes.number),
     }),
-    /**
-     *  self properties
-     */
     hasHAtom: PropTypes.bool,
     // 预览模式下，宽度
     previewWidth: PropTypes.number,
@@ -123,17 +123,17 @@ class MoleculeStructure extends Component {
     };
     if (this.isValidMol(mol) && this.isValidMol(qmol)) {
       const subStructHighlightDetails = JSON.parse(
-        mol.get_substruct_matches(qmol)
+        mol.get_substruct_matches(qmol),
       );
       const subStructHighlightDetailsMerged = !_.isEmpty(
-        subStructHighlightDetails
+        subStructHighlightDetails,
       )
         ? subStructHighlightDetails.reduce(
             (acc, { atoms, bonds }) => ({
               atoms: [...acc.atoms, ...atoms],
               bonds: [...acc.bonds, ...bonds],
             }),
-            { bonds: [], atoms: [] }
+            { bonds: [], atoms: [] },
           )
         : subStructHighlightDetails;
 

@@ -12,7 +12,7 @@ const CompoundCard = (props: {
   svgMode?: boolean;
   previewWidth?: number;
   drawingDelay?: number;
-  visible?: boolean;
+  showSmile?: boolean;
 }) => {
   const {
     id,
@@ -24,7 +24,7 @@ const CompoundCard = (props: {
     svgMode,
     previewWidth,
     drawingDelay = 0,
-    visible = true,
+    showSmile = true,
   } = props;
 
   return (
@@ -32,7 +32,7 @@ const CompoundCard = (props: {
       {header}
       <div
         className="molecule-wrapper"
-        style={{ visibility: visible ? "visible" : "hidden" }}
+        style={{ visibility: showSmile ? "visible" : "hidden" }}
       >
         <MoleculeStructure
           id={id}

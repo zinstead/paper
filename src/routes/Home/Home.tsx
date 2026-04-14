@@ -29,7 +29,7 @@ const apps = [
     title: "BioChem Agent",
     subtitle: "BioChem Agent",
     description: "药物设计智能Agent",
-    link: "",
+    link: "/agent",
   },
 ];
 

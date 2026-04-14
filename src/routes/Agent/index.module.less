@@ -1,0 +1,43 @@
+.more-icon {
+  border-radius: 50%;
+  &:hover {
+    background: rgb(242, 243, 245);
+    cursor: pointer;
+  }
+}
+
+/* 彻底隐藏上下箭头按钮（包括占位区域） */
+.custom-textarea::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+  display: none;
+  background: transparent;
+  opacity: 0;
+}
+
+/* 隐藏轨道背景（完全透明） */
+.custom-textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 滑块：浅灰色，圆角，悬浮加深 */
+.custom-textarea::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+.custom-textarea::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* 滚动条整体宽度（不加轨道背景） */
+.custom-textarea::-webkit-scrollbar {
+  width: 6px;
+  background: transparent;
+}
+
+/* 去掉右下角调整大小的手柄 */
+.custom-textarea {
+  resize: none;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent; /* Firefox 滑块浅灰，轨道透明 */
+}

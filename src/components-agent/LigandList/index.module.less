@@ -1,0 +1,16 @@
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  column-gap: 10px;
+  row-gap: 10px;
+}
+
+.card-list > * {
+  min-width: 0;
+}
+
+.collapse-item {
+  :global(.arco-collapse-item-content-box) {
+    padding-left: 13px;
+  }
+}

@@ -26,7 +26,7 @@ export function getTextColor(backgroundColor: string): "#000" | "#fff" {
   // sRGB -> Linear RGB
   const [r, g, b] = [c.r, c.g, c.b].map((v) => {
     v /= 255;
-    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
   });
 
   // Relative Luminance
@@ -38,7 +38,7 @@ export function getTextColor(backgroundColor: string): "#000" | "#fff" {
 
 export function isPassSearch(
   searchRules: SearchRule[],
-  properties: Property[]
+  properties: Property[],
 ) {
   const propertiesMap = keyBy(properties, "key");
   for (const { property, operator, value, min, max } of searchRules) {

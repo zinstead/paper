@@ -4,11 +4,10 @@ import type { Node, NodeProperties, Edge, EdgeProperties } from "@antv/x6";
 import { register } from "@antv/x6-react-shape";
 import "./index.css";
 import CompoundCard from "@/components/CompoundCard";
-import { isEmpty, mapValues, throttle } from "lodash";
-import { mapData, properties } from "@/constant";
+import { isEmpty, mapValues, maxBy, minBy, throttle } from "lodash";
+import { properties } from "@/constant";
 import { getBackground, getTextColor, isPassSearch } from "@/utils";
 import { Button, Form, Grid, Select, Switch } from "@arco-design/web-react";
-import { useRequest } from "ahooks";
 import type {
   ForceLayoutData,
   ForceLayoutEdge,
@@ -18,9 +17,17 @@ import type {
 } from "@/type";
 import useForm from "@arco-design/web-react/es/Form/useForm";
 import { IconSearch, IconSettings } from "@arco-design/web-react/icon";
-import { runFcoseLayout } from "./cytoscape";
+import { layoutFn, runFcoseLayout } from "./cytoscape";
 import ColorSettingsDrawer from "@/components/ColorSettingsDrawer";
 import AdvancedSearchModal from "@/components/AdvancedSearchModal";
+import { mock as mapData } from "@/constant/mock";
+import { evaluateLayout, runTest } from "./test";
+import { useQuery } from "@tanstack/react-query";
+
+const labelLineHeight = 21;
+const nodeWidth = 200;
+const zoomLimit = 0.2;
+const nodeCountLimit = 50;
 
 register({
   shape: "custom-node",
@@ -30,24 +37,29 @@ register({
 function renderNode({ node }: { node: Node<NodeProperties> }) {
   const {
     dim = false,
-    visible = true,
+    zoom,
+    nodeCount,
     id,
     structure,
     properties,
     nodeProperties,
   } = node.getData() || {};
+  const showSmile = zoom > zoomLimit && nodeCount < nodeCountLimit;
 
   const renderPropertyList = () => {
     const displayProperties = (properties as Property[]).filter((p) =>
       nodeProperties.has(p.key),
     );
+
     return (
       <div>
         {displayProperties.map(({ key, value }) => {
+          const min = 1,
+            max = 10;
           const background = getBackground({
             value,
-            min: 0,
-            max: 99,
+            min,
+            max,
             linear: true,
             inverted: false,
           });
@@ -86,18 +98,11 @@ function renderNode({ node }: { node: Node<NodeProperties> }) {
         width={198}
         height={200}
         svgMode
-        visible={visible}
+        showSmile={showSmile}
       />
     </div>
   );
 }
-
-const setNodeVisible = throttle((graph: Graph, ratio: number) => {
-  const visible = ratio >= 0.8;
-  graph.getNodes().forEach((n) => {
-    n.setData({ visible });
-  });
-});
 
 function setEdgeLabelsOpacity(edge: Edge<EdgeProperties>, opacity: number) {
   edge.setLabels(
@@ -126,24 +131,24 @@ function highlightRelated(node: Cell, graph: Graph) {
   const highlightEdges = new Set(edges.map((e) => e.id));
 
   graph.getNodes().forEach((n) => {
-    if (!highlightNodes.has(n.id)) {
-      n.setData({ dim: true });
-    }
+    const dim = !highlightNodes.has(n.id);
+    n.setData({ dim });
   });
 
   graph.getEdges().forEach((e) => {
     if (!highlightEdges.has(e.id)) {
       e.attr("line/opacity", 0.1);
+      e.attr("line/stroke", "black");
     } else {
+      e.attr("line/opacity", 1);
       e.attr("line/stroke", "blue");
     }
   });
 
   requestAnimationFrame(() => {
     graph.getEdges().forEach((e) => {
-      if (!highlightEdges.has(e.id)) {
-        setEdgeLabelsOpacity(e, 0.1);
-      }
+      const opacity = highlightEdges.has(e.id) ? 1 : 0.1;
+      setEdgeLabelsOpacity(e, opacity);
     });
   });
 }
@@ -170,7 +175,7 @@ function getEdgeLabels(properties: Property[], labelLineHeight: number) {
     const background = getBackground({
       value,
       min: 0,
-      max: 99,
+      max: 1,
       linear: true,
       inverted: false,
     });
@@ -203,8 +208,6 @@ function getEdgeLabels(properties: Property[], labelLineHeight: number) {
   });
 }
 
-const labelLineHeight = 21;
-const width = 200;
 function getNodeHeight(labelCount: number) {
   return 200 + labelLineHeight * labelCount + 20 + 2 + 20;
 }
@@ -218,18 +221,21 @@ export default function PerturbationMap() {
   const selectedEdge = Form.useWatch("selectedEdge", form) as string;
   const hasNeighbour = Form.useWatch("hasNeighbour", form) as boolean;
 
-  const { data } = useRequest(async () => {
-    const res = await new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(mapData);
-        const { initNodeProperties, initEdgeProperties } = mapData;
-        form.setFieldsValue({
-          nodeProperties: initNodeProperties,
-          edgeProperties: initEdgeProperties,
+  const { data } = useQuery({
+    queryKey: ["mapData"],
+    queryFn: async () => {
+      const res = await new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(mapData);
+          const { initNodeProperties, initEdgeProperties } = mapData;
+          form.setFieldsValue({
+            nodeProperties: initNodeProperties,
+            edgeProperties: initEdgeProperties,
+          });
         });
       });
-    });
-    return res as typeof mapData | undefined;
+      return res as typeof mapData | undefined;
+    },
   });
   const nodeIds = data?.nodes.map((item) => item.id);
   const edgeIds = data?.edges.map(
@@ -319,8 +325,27 @@ export default function PerturbationMap() {
 
     // 缩放时判断是否渲染smiles结构
     graph.on("scale", (args) => {
-      setNodeVisible(graph, args.sx);
+      graph.getNodes().forEach((n) => {
+        n.setData({ zoom: args.sx });
+      });
     });
+
+    // 可见节点数量变化
+    graph.on(
+      "node:change:visible",
+      (args: {
+        cell: Cell;
+        edge: Edge;
+        current?: number; // 当前值
+        previous?: number; // 改变之前的值
+        options: any; // 透传的 options
+      }) => {
+        const nodeCount = graph
+          .getNodes()
+          .reduce((pre, cur) => pre + (cur.isVisible() ? 1 : 0), 0);
+        args.cell.setData({ nodeCount });
+      },
+    );
 
     return () => {
       graph.dispose();
@@ -332,15 +357,19 @@ export default function PerturbationMap() {
 
     const { nodes, edges } = data;
     const height = getNodeHeight(nodeProperties.length);
+    const start = performance.now();
 
     // 添加节点
     nodes.forEach((n) => {
+      const zoom = graph.zoom(),
+        nodeCount = nodes.length;
+      const data = { ...n, nodeCount, zoom };
       graph.addNode({
         id: n.id,
         shape: "custom-node",
-        width,
+        width: nodeWidth,
         height,
-        data: n,
+        data,
       });
     });
 
@@ -361,7 +390,14 @@ export default function PerturbationMap() {
       source: e.source,
       target: e.target,
     }));
-    requestLayout(graph, { nodes: layoutNodes, edges: layoutEdges });
+    requestLayout(graph, { nodes: layoutNodes, edges: layoutEdges }).then(
+      () => {
+        requestAnimationFrame(() => {
+          const end = performance.now();
+          console.log("TTFR:", end - start);
+        });
+      },
+    );
   }, [graph, data]);
 
   useEffect(() => {
@@ -405,7 +441,7 @@ export default function PerturbationMap() {
     // 应用力导向布局
     const forceNodes = data.nodes.map((id) => ({
       id,
-      width,
+      width: nodeWidth,
       height,
     }));
     const forceEdges = data.edges.map((e) => ({
@@ -413,7 +449,13 @@ export default function PerturbationMap() {
       target: e.target,
     }));
 
-    const result = await runFcoseLayout(forceNodes, forceEdges);
+    // const result = await runFcoseLayout(forceNodes, forceEdges);
+    const result = await layoutFn({
+      nodes: forceNodes,
+      edges: forceEdges,
+      adaptiveParams: true,
+      avoidOverlap: false,
+    });
     const nodes = Object.values(
       mapValues(result, (value, key) => ({
         id: key,
@@ -423,12 +465,11 @@ export default function PerturbationMap() {
 
     nodes.forEach((n) => {
       const node = graph.getCellById(n.id) as Node;
-      node.position(n.x - width / 2, n.y - height / 2);
+      node.position(n.x - nodeWidth / 2, n.y - height / 2);
     });
 
     requestAnimationFrame(() => {
-      graph.zoomToFit({ padding: 30 });
-      graph.centerContent();
+      graph.zoomToFit({ padding: 10 });
     });
   };
 
@@ -555,12 +596,19 @@ export default function PerturbationMap() {
       }}
     >
       <div>
-        <Form form={form}>
+        {/* <button
+          onClick={() => {
+            runTest();
+          }}
+        >
+          点击测试
+        </button> */}
+        <Form form={form} labelCol={{ span: 8 }} wrapperCol={{ span: 16 }}>
           <Grid.Row>
             <Grid.Col span={8}>
               <div style={{ display: "flex" }}>
                 <Form.Item
-                  label="节点"
+                  label="Node"
                   field={"selectedNodes"}
                   initialValue={[]}
                 >
@@ -594,7 +642,11 @@ export default function PerturbationMap() {
             </Grid.Col>
             <Grid.Col span={8}>
               <div style={{ display: "flex" }}>
-                <Form.Item label="边" field={"selectedEdge"} initialValue={""}>
+                <Form.Item
+                  label="Edge"
+                  field={"selectedEdge"}
+                  initialValue={""}
+                >
                   <Select
                     options={edgeIds?.map((item) => ({
                       label: item,
@@ -624,7 +676,7 @@ export default function PerturbationMap() {
             </Grid.Col>
             <Grid.Col span={8}>
               <Form.Item
-                label="包含一阶邻域"
+                label="Includes Neighborhood"
                 colon
                 labelCol={{ span: 12 }}
                 wrapperCol={{ span: 12 }}
@@ -641,7 +693,7 @@ export default function PerturbationMap() {
             <Grid.Col span={8}>
               <div style={{ display: "flex" }}>
                 <Form.Item
-                  label="节点属性"
+                  label="Node Properties"
                   field={"nodeProperties"}
                   initialValue={[]}
                 >
@@ -668,7 +720,7 @@ export default function PerturbationMap() {
             <Grid.Col span={8}>
               <div style={{ display: "flex" }}>
                 <Form.Item
-                  label="边属性"
+                  label="Edge Properties"
                   field={"edgeProperties"}
                   initialValue={[]}
                 >
@@ -695,7 +747,7 @@ export default function PerturbationMap() {
           </Grid.Row>
         </Form>
       </div>
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, border: "1px solid transparent" }}>
         <div
           style={{
             width: "100%",
@@ -709,6 +761,7 @@ export default function PerturbationMap() {
         </div>
       </div>
       <AdvancedSearchModal
+        title="Search Nodes"
         visible={searchModalVisible}
         onCancel={() => {
           setSearchModalVisible(false);

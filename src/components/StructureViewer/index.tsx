@@ -28,36 +28,13 @@ import {
   getTreeDataFromSequence,
   toggleMeasurementVisibility,
   highlightMeasurement,
+  removeMolecule,
 } from "@/utils/viewer";
 import { IconDelete, IconPlus } from "@arco-design/web-react/icon";
 import { parseInt } from "lodash";
-
-const MySpec: PluginUISpec = {
-  ...DefaultPluginUISpec(),
-  config: [
-    [PluginConfig.Viewport.ShowControls, true],
-    [PluginConfig.Viewport.ShowExpand, false],
-    [PluginConfig.Viewport.ShowSelectionMode, false],
-    [PluginConfig.Viewport.ShowSettings, false],
-    [PluginConfig.Viewport.ShowTrajectoryControls, false],
-    [PluginConfig.Viewport.ShowAnimation, false],
-    [PluginConfig.Viewport.ShowScreenshotControls, false],
-  ],
-  components: {
-    viewport: {
-      controls: () => null,
-    },
-    controls: {
-      top: "none",
-      bottom: "none",
-      left: "none",
-      right: "none",
-    },
-    selectionTools: {
-      controls: () => null,
-    },
-  },
-};
+import { MySpec } from "./molstar-init";
+import { extractSequence } from "@/utils/test";
+import { Structure } from "molstar/lib/mol-model/structure";
 
 const StructureViewer = () => {
   const parent = useRef<HTMLDivElement>(null);
@@ -122,7 +99,7 @@ const StructureViewer = () => {
   }
 
   async function initTreeData(plugin: PluginUIContext) {
-    const proteins = ["7PZB"];
+    const proteins = ["1EF2"];
     const proteinTreeData: any = [];
     const map = {};
     for (let pdbId of proteins) {
@@ -161,7 +138,7 @@ const StructureViewer = () => {
         locis[3],
       );
     }
-    const selRef = res?.selection.ref!;
+    const selRef = res?.selection!;
     const repRef = res?.representation.ref!;
     const measurements = measurementTreeData.find((m) => m.key === type);
     const children = measurements?.children!;
@@ -194,12 +171,22 @@ const StructureViewer = () => {
   }, []);
 
   return (
-    <Layout style={{ height: "100%" }}>
+    <Layout style={{ height: "calc(100vh - 35px)" }}>
       <Layout.Sider style={{ width: 300, padding: 20 }}>
+        {/* <button
+          onClick={() => {
+            if (!plugin) return;
+            // const res = extractSequence(plugin);
+            // console.log(res);
+            // toggleMeasurementVisibility(plugin,)
+          }}
+        >
+          测试
+        </button> */}
         <div>
           <label>Protein:</label>
           <Tree
-            defaultCheckedKeys={["7PZB"]}
+            defaultCheckedKeys={["1EF2"]}
             treeData={proteinTreeData}
             autoExpandParent={false}
             blockNode
@@ -255,12 +242,16 @@ const StructureViewer = () => {
               );
             }}
             renderExtra={(props) => {
-              const data = props._key!.split(":");
+              const key = props._key!;
+              const data = key.split(":");
               if (data.length === 1) {
                 return (
                   <Link
                     hoverable={false}
                     style={{ height: 32, lineHeight: "32px" }}
+                    onClick={() => {
+                      removeMolecule(plugin, proteinStructureMap[key]);
+                    }}
                   >
                     <IconDelete />
                   </Link>
@@ -288,6 +279,7 @@ const StructureViewer = () => {
                 toggleMoleculeVisibility(plugin, proteinStructureMap[key]);
               }
             }}
+            virtualListProps={{ height: 300 }}
           />
         </div>
         <div style={{ margin: "30px 0" }}>
@@ -296,11 +288,38 @@ const StructureViewer = () => {
             treeData={ligandTreeData}
             autoExpandParent={false}
             blockNode
+            renderTitle={(props) => {
+              return (
+                <div
+                  onMouseEnter={() => {
+                    if (!plugin) return;
+                    const key = props._key!;
+                    const ligandLoci = Structure.toStructureElementLoci(
+                      ligandStructureMap[key].cell?.obj?.data as any,
+                    );
+                    plugin.managers.interactivity.lociHighlights.highlight({
+                      loci: ligandLoci,
+                    });
+                  }}
+                  onMouseLeave={() => {
+                    clearHighlights(plugin);
+                  }}
+                >
+                  <Typography.Ellipsis style={{ maxWidth: 210 }}>
+                    {props.title}
+                  </Typography.Ellipsis>
+                </div>
+              );
+            }}
             renderExtra={(props) => {
               return (
                 <Link
                   hoverable={false}
                   style={{ height: 32, lineHeight: "32px" }}
+                  onClick={() => {
+                    const key = props._key!;
+                    removeMolecule(plugin, ligandStructureMap[key]);
+                  }}
                 >
                   <IconDelete />
                 </Link>
@@ -366,14 +385,14 @@ const StructureViewer = () => {
             }}
             onCheck={(_, { node, checked }) => {
               const res = measurementRefs[node.key];
-              toggleMeasurementVisibility(plugin, res?.repRef, checked);
+              toggleMeasurementVisibility(plugin, res?.selRef, checked);
             }}
             renderTitle={(props) => {
               const res = measurementRefs[props._key];
               return (
                 <div
                   onMouseEnter={() => {
-                    highlightMeasurement(plugin, res?.selRef);
+                    highlightMeasurement(plugin, res?.selRef.ref);
                   }}
                   onMouseLeave={() => {
                     clearHighlights(plugin);
@@ -391,7 +410,11 @@ const StructureViewer = () => {
       <Layout.Content>
         <div
           ref={parent}
-          style={{ width: "100%", height: "100%", position: "relative" }}
+          style={{
+            width: "100%",
+            height: "100%",
+            position: "relative",
+          }}
         ></div>
       </Layout.Content>
     </Layout>
