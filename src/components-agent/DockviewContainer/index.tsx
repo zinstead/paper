@@ -5,7 +5,7 @@ import {
   type IDockviewPanel,
   type IDockviewPanelProps,
 } from "dockview";
-import { mapValues, omit } from "lodash";
+import { cloneDeep, isEmpty, isNil, mapValues, omit, omitBy } from "lodash";
 import ProjectList from "../ProjectList";
 import CreateProjectForm from "../CreateProjectForm";
 import EntryList from "../EntryList";
@@ -16,6 +16,7 @@ import PerturbationMap from "../PerturbationMap";
 import WorkspaceList from "../WorkspaceList";
 import { actionDispatcher } from "@/agent/dispatcher";
 import { initLocalWorkspace } from "@/utils/agent";
+import { filterMolecules } from "@/api/index.ts";
 
 const componentMap: Record<
   string,
@@ -179,6 +180,7 @@ actionDispatcher.register(
       const panelState = {
         projectId,
         entryId,
+        pagination: { current: 1, pageSize: 10, total: 0 },
       };
       useUIStore.setState({
         panelStates: { ...panelStates, [panelId]: panelState },
@@ -257,6 +259,44 @@ actionDispatcher.register("showWorkspaceList", () => {
     });
   }
 });
+
+actionDispatcher.register(
+  "filterMolecules",
+  async (parameters: { userGoal: string }) => {
+    const { userGoal } = parameters;
+    const { dockviewApi, panelStates, chatMessages } = useUIStore.getState();
+    // 筛选分子前必须先打开配体列表
+    if (
+      !dockviewApi ||
+      !dockviewApi.activePanel ||
+      dockviewApi.activePanel.api.component !== "LigandList"
+    ) {
+      const msg: Message = {
+        role: "assistant",
+        content: "Please open the ligand list first.",
+      };
+      useUIStore.setState({ chatMessages: [...chatMessages, msg] });
+      return;
+    }
+    const panelState = panelStates[dockviewApi.activePanel.id];
+    const { filters } = panelState ?? {};
+    const filterApi = `http://localhost:3000/molecules?entryId=${panelState.entryId}`;
+    const params = { filters, userGoal, filterApi };
+
+    const res = await filterMolecules(params);
+    const { reason, ...rest } = res;
+
+    useUIStore.setState({
+      panelStates: {
+        ...panelStates,
+        [dockviewApi.activePanel.id]: {
+          ...panelState,
+          ...omitBy(rest, isNil),
+        },
+      },
+    });
+  },
+);
 
 const DockviewContainer = () => {
   return (

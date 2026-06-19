@@ -2,6 +2,8 @@ export interface Property {
   key: string;
   value: any;
   type: string;
+  min?: number;
+  max?: number;
 }
 
 export interface PerturbationNode {

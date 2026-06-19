@@ -21,6 +21,7 @@ import {
   IconArrowUp,
   IconDelete,
   IconList,
+  IconLoading,
   IconMore,
   IconRedo,
   IconSave,
@@ -32,6 +33,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import SaveWorkspaceForm from "@/components-agent/SaveWorkspaceForm";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useShallow } from "zustand/react/shallow";
+import { parseUserIntent } from "@/api/index.ts";
 
 const { TextArea } = Input;
 
@@ -82,17 +84,17 @@ const Agent = () => {
     setInput("");
     useUIStore.setState({ chatMessages: [...chatMessages, userMsg] });
 
-    const action = (
-      await axios.post("http://localhost:5000/api/agent", { messages: msgs })
-    ).data;
+    const action = await parseUserIntent(msgs);
     const assistantMsg: Message = {
       role: "assistant",
       content: JSON.stringify(action),
     };
     useUIStore.setState({ agentMessages: [...msgs, assistantMsg] });
+    console.log("action", JSON.stringify(action));
 
     await actionDispatcher.dispatch(action);
   };
+
   const sendMessageMutation = useMutation({
     mutationKey: ["sendMessage"],
     mutationFn: handleSendMessage,
@@ -319,10 +321,14 @@ const Agent = () => {
                     onClick={() => {
                       sendMessageMutation.mutate();
                     }}
-                    loading={sendMessageMutation.isPending}
                     shape="circle"
+                    disabled={sendMessageMutation.isPending}
                   >
-                    <IconArrowUp />
+                    {sendMessageMutation.isPending ? (
+                      <IconLoading />
+                    ) : (
+                      <IconArrowUp />
+                    )}
                   </Button>
                 </Space>
               </div>

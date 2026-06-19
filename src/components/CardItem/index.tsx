@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { motion } from "framer-motion";
 import CompoundCard from "../CompoundCard";
@@ -7,14 +7,15 @@ import classNames from "classnames";
 import styles from "./index.module.less";
 import { Carousel, Space } from "@arco-design/web-react";
 import { useCardDataStore } from "../../store";
-import type { CardData } from "../../type";
+import type { CardData, Property } from "../../type";
 import { columns } from "../../constant";
 import { getBackground, getTextColor } from "../../utils";
 
 function getPropertyFields(columns: string[]) {
   const n = columns.length;
   // 一页最多显示三个属性
-  const pageSize = n > 3 ? 3 : n;
+  const maxSize = 3;
+  const pageSize = n > maxSize ? maxSize : n;
   const fields = [];
   let i = 0;
   while (i < n) {
@@ -39,7 +40,7 @@ export default function CardItem({
   moveCard,
   switchLock,
 }: CardItemProps) {
-  const { id, structure, locked } = cardData;
+  const { id, structure, locked, properties } = cardData;
   const ref = useRef<HTMLDivElement>(null);
 
   const [{ isDragging }, drag] = useDrag({
@@ -113,8 +114,8 @@ export default function CardItem({
   };
 
   const renderFooter = () => {
+    const columns = cardData.properties.map((item) => item.key);
     const { fields, pageSize } = getPropertyFields(columns);
-    const params = { min: 123, max: 789, linear: true, inverted: false };
     return (
       <div style={{ transform: "none" }}>
         <Carousel indicatorPosition="top" animation="fade" showArrow={"never"}>
@@ -124,17 +125,23 @@ export default function CardItem({
               style={{ height: 21 * pageSize }}
             >
               {pageFields.map((field) => {
-                const { value } = cardData.properties.find(
-                  (item) => item.key === field,
-                )!;
+                const property = properties.find((item) => item.key === field)!;
+                const params = {
+                  linear: true,
+                  inverted: false,
+                };
+
                 const background = getBackground({
-                  value,
                   ...params,
+                  value: property.value,
+                  min: property?.min ?? Infinity,
+                  max: property.max ?? Infinity,
                 });
                 const color = getTextColor(background);
 
                 return (
                   <div
+                    key={field}
                     className={styles.propertyItem}
                     style={{
                       background,
@@ -142,7 +149,7 @@ export default function CardItem({
                     }}
                   >
                     <div>{field}</div>
-                    <div>{value}</div>
+                    <div>{property.value}</div>
                   </div>
                 );
               })}

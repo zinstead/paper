@@ -1,25 +1,110 @@
 import CardItem from "@/components/CardItem";
 // import styles from "./index.module.less";
 import { useCardDataStore } from "../../store";
-import { Button, Pagination, Space } from "@arco-design/web-react";
-import { useState } from "react";
+import {
+  Button,
+  Pagination,
+  Space,
+  type PaginationProps,
+} from "@arco-design/web-react";
+import { useEffect, useState } from "react";
 import { IconSettings } from "@arco-design/web-react/icon";
 import DndWrapper from "@/components/DndWrapper";
 import ColorSettingsDrawer from "@/components/ColorSettingsDrawer";
 import { properties } from "@/constant";
 import SubstructureEditor from "@/components/SubstructureEditor";
 import type { PanelComponentProps } from "@/type/agent";
+import {
+  getMolecules,
+  type MoleculeFiltersSchema,
+  type MoleculeSorterSchema,
+} from "@/api/index.ts";
+import { useQuery } from "@tanstack/react-query";
+import type { CardData } from "@/type/index.ts";
+import { getPaginatedData } from "@/utils/agent.ts";
+import axios from "axios";
+
+function getMinMaxByKey(data: Record<string, any>[]) {
+  const result: Record<string, { min: number; max: number }> = {};
+  for (const item of data) {
+    for (const [key, value] of Object.entries(item)) {
+      if (typeof value !== "number") continue;
+      const cur = result[key];
+      if (cur) {
+        if (value < cur.min) result[key].min = value;
+        if (value > cur.max) result[key].max = value;
+      } else {
+        result[key] = { min: value, max: value };
+      }
+    }
+  }
+  return result;
+}
 
 export default function LigandList(
-  props: PanelComponentProps<{ projectId: number; entryId: number }>,
+  props: PanelComponentProps<{
+    projectId: number;
+    entryId: number;
+    pagination: PaginationProps;
+    filters?: MoleculeFiltersSchema;
+    sorter?: MoleculeSorterSchema;
+    limit?: number;
+  }>,
 ) {
+  const { state, setState } = props;
+  const { pagination, filters, sorter, limit } = state;
+  console.log(state);
+
+  const setPagination = (pagination: PaginationProps) => {
+    setState({ pagination });
+  };
+
   const cardList = useCardDataStore((state) => state.cardList);
   const setCardList = useCardDataStore((state) => state.setCardList);
+
+  useEffect(() => {
+    setPagination({ ...pagination, current: 1 });
+  }, [filters]);
+
+  const query = useQuery<CardData[]>({
+    queryKey: [
+      "molecules",
+      pagination.current,
+      pagination.pageSize,
+      filters,
+      sorter,
+      limit,
+    ],
+    queryFn: async () => {
+      const res = await getMolecules({ pagination, filters, sorter, limit });
+      setPagination({ ...pagination, total: res.total });
+      const data = res.data;
+      const minMaxMap = getMinMaxByKey(data);
+      const molecules = data.map((item: Record<string, any>) => {
+        const { id, smiles, ...properties } = item;
+        const node = {
+          id,
+          structure: smiles,
+          locked: false,
+          properties: Object.entries(properties).map(([key, value]) => {
+            return {
+              key,
+              value,
+              type: typeof value,
+              min: minMaxMap[key]?.min,
+              max: minMaxMap[key]?.max,
+            };
+          }),
+        };
+        return node;
+      });
+      return molecules;
+    },
+  });
+
   const [editorVisible, setEditorVisible] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
 
-  const [pageNum, setPageNum] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [columnCount, setColumnCount] = useState(4);
 
   const moveCard = (dragIndex: number, dropIndex: number) => {
@@ -76,28 +161,31 @@ export default function LigandList(
             rowGap: "16px",
           }}
         >
-          {cardList
-            .slice((pageNum - 1) * pageSize, pageNum * pageSize)
-            .map((card, index) => (
-              <CardItem
-                key={card.id}
-                cardData={card}
-                index={index}
-                moveCard={moveCard}
-                switchLock={switchLock}
-              />
-            ))}
+          {query.isLoading ? (
+            <div>loading...</div>
+          ) : (
+            query.data?.map((card, index) => {
+              return (
+                <CardItem
+                  key={card.id}
+                  cardData={card}
+                  index={index}
+                  moveCard={moveCard}
+                  switchLock={switchLock}
+                />
+              );
+            })
+          )}
         </div>
       </DndWrapper>
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <Pagination
-          total={cardList.length}
           showTotal
-          pageSize={pageSize}
-          current={pageNum}
-          onChange={(pageNum, pageSize) => {
-            setPageNum(pageNum);
-            setPageSize(pageSize);
+          total={pagination.total}
+          pageSize={pagination.pageSize}
+          current={pagination.current}
+          onChange={(current, pageSize) => {
+            setPagination({ ...pagination, current, pageSize });
           }}
         />
       </div>

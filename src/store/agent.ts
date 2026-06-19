@@ -7,6 +7,7 @@ export type PanelStatesType = Record<string, any>;
 interface UIContext {
   projectId?: number;
   taskId?: number;
+  entryId?: number;
 }
 
 export interface Message {
