@@ -1,0 +1,64 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="第 1 页" id="9zmfjYmbYvVpZ43LmsRL">
+    <mxGraphModel dx="1201" dy="730" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#36393d;" value="" vertex="1">
+          <mxGeometry height="50" width="510" x="170" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-2" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;表示层&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="60" x="180" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="聊天界面" vertex="1">
+          <mxGeometry height="30" width="90" x="340" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="系统功能界面" vertex="1">
+          <mxGeometry height="30" width="90" x="480" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#36393d;" value="" vertex="1">
+          <mxGeometry height="50" width="510" x="170" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-9" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;控制层&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="60" x="180" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="上下文管理模块" vertex="1">
+          <mxGeometry height="30" width="90" x="270" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="动作派遣模块" vertex="1">
+          <mxGeometry height="30" width="90" x="369" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="动作执行模块" vertex="1">
+          <mxGeometry height="30" width="90" x="470" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-13" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="工作区管理模块" vertex="1">
+          <mxGeometry height="30" width="90" x="570" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-14" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#36393d;" value="" vertex="1">
+          <mxGeometry height="50" width="510" x="170" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-15" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;服务层&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="60" x="180" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-16" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="业务功能服务" vertex="1">
+          <mxGeometry height="30" width="90" x="290" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-17" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="意图解析服务" vertex="1">
+          <mxGeometry height="30" width="90" x="410" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-18" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="分子筛选Agent" vertex="1">
+          <mxGeometry height="30" width="90" x="530" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-20" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#36393d;" value="" vertex="1">
+          <mxGeometry height="50" width="510" x="170" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-21" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;外部支撑层&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="80" x="180" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="BbqBN4wUg_AExJgNvK6T-23" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="大语言模型API" vertex="1">
+          <mxGeometry height="30" width="90" x="390" y="390" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
