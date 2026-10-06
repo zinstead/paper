@@ -110,13 +110,17 @@ export async function getMolecules(params: {
   const pageSize = pagination.pageSize!;
 
   // const paginationStr = `_page=${current}&_per_page=${pageSize}`;
-  const filtersQuery = isEmpty(filters) ? "" : "&" + buildFilterQuery(filters);
+  const filtersQuery = isEmpty(filters) ? "" : "&" + buildFilterQuery(filters!);
   const sorterQuery = isEmpty(sorter) ? "" : "&" + buildSorterQuery(sorter);
   // const limitQuery = isNil(limit) ? "" : "&" + buildLimitQuery(limit);
 
   const api = `${apiPrefix}/molecules?${filtersQuery}${sorterQuery}`;
 
   let data = (await axios.get(api)).data;
+  // test
+  // let data = (await axios.get(api)).data.filter((item) =>
+  //   item.smiles.includes("c1ccccc1"),
+  // );
   if (!isNil(limit)) {
     const count = Math.min(data.length, limit);
     data = data.slice(0, count);

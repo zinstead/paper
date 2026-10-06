@@ -47,13 +47,7 @@ const components = mapValues(componentMap, (Component) => {
     };
 
     return (
-      <div
-        style={{
-          overflowY: "auto",
-          height: "100%",
-          boxSizing: "border-box",
-        }}
-      >
+      <div style={{ overflow: "auto", width: "100%", height: "100%" }}>
         <Component state={panelState} setState={setState} />
       </div>
     );
@@ -162,7 +156,7 @@ actionDispatcher.register(
     entryId: number;
     moleculeType: "protein" | "ligand" | "perturbationMap";
   }) => {
-    const { projectId, entryId, moleculeType } = parameters;
+    const { projectId, entryId, moleculeType = "protein" } = parameters;
     const { dockviewApi, panelStates } = useUIStore.getState();
     if (!dockviewApi) return;
     const componentMap = {
@@ -203,7 +197,7 @@ actionDispatcher.register(
   },
 );
 
-actionDispatcher.register("unknown", (parameters: { reason: string }) => {
+actionDispatcher.register("unknownAction", (parameters: { reason: string }) => {
   const { chatMessages } = useUIStore.getState();
   const msg: Message = { role: "assistant", content: parameters.reason };
   useUIStore.setState({ chatMessages: [...chatMessages, msg] });
@@ -302,9 +296,10 @@ const DockviewContainer = () => {
   return (
     <DockviewReact
       components={components}
-      onReady={async (e) => {
+      onReady={(e) => {
         const api = e.api;
         useUIStore.setState({ dockviewApi: api });
+        initLocalWorkspace();
 
         api.onDidActivePanelChange((panel) => {
           actionDispatcher.dispatch({
@@ -326,8 +321,6 @@ const DockviewContainer = () => {
             parameters: {},
           });
         });
-
-        await initLocalWorkspace();
       }}
       theme={themeLight}
     />

@@ -10,6 +10,7 @@ import { useCardDataStore } from "../../store";
 import type { CardData, Property } from "../../type";
 import { columns } from "../../constant";
 import { getBackground, getTextColor } from "../../utils";
+import type { ColorSettings } from "@/components-agent/LigandList/index.tsx";
 
 function getPropertyFields(columns: string[]) {
   const n = columns.length;
@@ -30,6 +31,7 @@ export interface CardItemProps {
   index: number;
   moveCard: (dragIndex: number, dropIndex: number) => void;
   switchLock: (id: string) => void;
+  colorSettings?: ColorSettings;
 }
 
 const ItemType = { CARD: "card" };
@@ -39,6 +41,7 @@ export default function CardItem({
   index,
   moveCard,
   switchLock,
+  colorSettings,
 }: CardItemProps) {
   const { id, structure, locked, properties } = cardData;
   const ref = useRef<HTMLDivElement>(null);
@@ -126,20 +129,28 @@ export default function CardItem({
             >
               {pageFields.map((field) => {
                 const property = properties.find((item) => item.key === field)!;
-                const params = {
-                  linear: true,
-                  inverted: false,
-                };
 
-                const background = getBackground({
-                  ...params,
-                  value: property.value,
-                  min: property?.min ?? Infinity,
-                  max: property.max ?? Infinity,
-                });
-                const color = getTextColor(background);
+                // const background = getBackground({
+                //   ...params,
+                //   value: property.value,
+                //   min: property?.min ?? Infinity,
+                //   max: property.max ?? Infinity,
+                // });
+                // const color = getTextColor(background);
 
-                return (
+                const categoryBackground = "#ececec";
+                const hasColorSetting = colorSettings && colorSettings[field];
+                const background = hasColorSetting
+                  ? getBackground({
+                      ...colorSettings[field],
+                      value: property.value,
+                    })
+                  : categoryBackground;
+                const color = hasColorSetting
+                  ? getTextColor(background!)
+                  : "black";
+
+                return property.type === "number" ? (
                   <div
                     key={field}
                     className={styles.propertyItem}
@@ -149,7 +160,16 @@ export default function CardItem({
                     }}
                   >
                     <div>{field}</div>
-                    <div>{property.value}</div>
+                    <div>{property.value.toString()}</div>
+                  </div>
+                ) : (
+                  <div
+                    key={field}
+                    className={styles.propertyItem}
+                    style={{ background: categoryBackground }}
+                  >
+                    <div>{field}</div>
+                    <div>{property.value.toString()}</div>
                   </div>
                 );
               })}

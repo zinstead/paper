@@ -3,10 +3,13 @@ import type { RemoteWorkspace } from "@/store/agent";
 import type { PanelComponentProps } from "@/type/agent";
 import { formatDate, getShareUrl } from "@/utils/agent";
 import {
+  Button,
   Dropdown,
+  Input,
   Link,
   Menu,
   Notification,
+  Select,
   Space,
   Table,
   Typography,
@@ -60,10 +63,10 @@ const WorkspaceList = (
       title: "Description",
       dataIndex: "description",
     },
-    {
-      title: "Creator",
-      dataIndex: "creator",
-    },
+    // {
+    //   title: "Creator",
+    //   dataIndex: "creator",
+    // },
     {
       title: "Create At",
       dataIndex: "createTime",
@@ -121,6 +124,23 @@ const WorkspaceList = (
   return (
     <div style={{ padding: 24 }}>
       <Typography.Title heading={4}>Workspace List</Typography.Title>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: 20,
+        }}
+      >
+        <Space size={30}>
+          <Input.Group compact style={{ width: 240 }}>
+            <Select defaultValue="ID" showSearch style={{ width: "35%" }}>
+              <Select.Option value="ID">ID</Select.Option>
+              <Select.Option value="Name">Name</Select.Option>
+            </Select>
+            <Input.Search placeholder="Search" style={{ width: "65%" }} />
+          </Input.Group>
+        </Space>
+      </div>
       <Table
         rowKey={"id"}
         columns={columns}

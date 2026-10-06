@@ -4,8 +4,10 @@ import {
   Badge,
   Button,
   Dropdown,
+  Input,
   Link,
   Menu,
+  Select,
   Space,
   Table,
   Typography,
@@ -53,6 +55,14 @@ const TaskList = (props: PanelComponentProps<{ projectId: number }>) => {
       dataIndex: "type",
     },
     {
+      title: "Progress",
+      dataIndex: "progress",
+      render(col, item, index) {
+        const percent = typeof col === "number" ? Math.round(col * 100) : 0;
+        return <div>{percent}%</div>;
+      },
+    },
+    {
       title: "Status",
       dataIndex: "status",
       render(col, item, index) {
@@ -76,7 +86,7 @@ const TaskList = (props: PanelComponentProps<{ projectId: number }>) => {
             <Link icon={<IconExperiment />}>analyse</Link>
             <Link>restart</Link>
             <Link style={{ color: "rgb(245, 63, 63)" }}>stop</Link>
-            <Dropdown
+            {/* <Dropdown
               droplist={
                 <Menu>
                   <Menu.Item key="freeze">freeze</Menu.Item>
@@ -85,7 +95,7 @@ const TaskList = (props: PanelComponentProps<{ projectId: number }>) => {
               position="bl"
             >
               <IconDown />
-            </Dropdown>
+            </Dropdown> */}
           </Space>
         );
       },
@@ -103,10 +113,28 @@ const TaskList = (props: PanelComponentProps<{ projectId: number }>) => {
   return (
     <div style={{ padding: 24 }}>
       <Typography.Title heading={4}>Task List</Typography.Title>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: 20,
+        }}
+      >
+        <Space size={30}>
+          <Input.Group compact style={{ width: 240 }}>
+            <Select defaultValue="ID" showSearch style={{ width: "35%" }}>
+              <Select.Option value="ID">ID</Select.Option>
+              <Select.Option value="Name">Name</Select.Option>
+            </Select>
+            <Input.Search placeholder="Search" style={{ width: "65%" }} />
+          </Input.Group>
+          <Button type="primary">Create Task</Button>
+        </Space>
+      </div>
       <Table
         rowKey={"id"}
         columns={columns}
-        data={query.data}
+        data={query.data?.slice(0, 5)}
         loading={query.isLoading}
         pagination={{ showTotal: true }}
       />

@@ -61,7 +61,7 @@ function renderNode({ node }: { node: Node<NodeProperties> }) {
             value,
             min,
             max,
-            linear: true,
+            scale: "linear",
             inverted: false,
           });
           const color = getTextColor(background);
@@ -177,7 +177,7 @@ function getEdgeLabels(properties: Property[], labelLineHeight: number) {
       value,
       min: 0,
       max: 1,
-      linear: true,
+      scale: "linear",
       inverted: false,
     });
     const color = getTextColor(background);
@@ -240,9 +240,9 @@ export default function PerturbationMap(
       return res as typeof mapData | undefined;
     },
   });
-  const nodeIds = data?.nodes.map((item) => item.id);
+  const nodeIds = data?.nodes.map((item: any) => item.id);
   const edgeIds = data?.edges.map(
-    ({ source, target }) => `${source}-${target}`,
+    (item: any) => `${item.source}-${item.target}`,
   );
 
   const nodeProperties = Form.useWatch("nodeProperties", form) as string[];
@@ -265,9 +265,12 @@ export default function PerturbationMap(
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!containerRef) return;
+    if (!containerRef || !containerRef.current) return;
+    const { width, height } = containerRef.current.getBoundingClientRect();
     const graph = new Graph({
       container: containerRef.current!,
+      width,
+      height,
       autoResize: true,
       background: {
         color: "#F2F7FA",
@@ -363,7 +366,7 @@ export default function PerturbationMap(
     const start = performance.now();
 
     // 添加节点
-    nodes.forEach((n) => {
+    nodes.forEach((n: any) => {
       const zoom = graph.zoom(),
         nodeCount = nodes.length;
       const data = { ...n, nodeCount, zoom };
@@ -377,7 +380,7 @@ export default function PerturbationMap(
     });
 
     // 添加边
-    edges.forEach((e) => {
+    edges.forEach((e: any) => {
       graph.addEdge({
         source: e.source,
         target: e.target,
@@ -388,8 +391,8 @@ export default function PerturbationMap(
       });
     });
 
-    const layoutNodes = nodes.map((n) => n.id);
-    const layoutEdges = edges.map((e) => ({
+    const layoutNodes = nodes.map((n: any) => n.id);
+    const layoutEdges = edges.map((e: any) => ({
       source: e.source,
       target: e.target,
     }));
@@ -473,6 +476,7 @@ export default function PerturbationMap(
 
     requestAnimationFrame(() => {
       graph.zoomToFit({ padding: 10 });
+      graph.centerContent();
     });
   };
 
@@ -480,8 +484,8 @@ export default function PerturbationMap(
     if (!graph || !data) return;
     graph.getNodes().forEach((n) => n.show());
     graph.getEdges().forEach((e) => e.show());
-    const nodes = data.nodes.map((n) => n.id);
-    const edges = data.edges.map((e) => ({
+    const nodes = data.nodes.map((n: any) => n.id);
+    const edges = data.edges.map((e: any) => ({
       source: e.source,
       target: e.target,
     }));
@@ -530,7 +534,7 @@ export default function PerturbationMap(
     }
 
     const edges = data.edges.filter(
-      (e) => nodeSet.has(e.source) && nodeSet.has(e.target),
+      (e: any) => nodeSet.has(e.source) && nodeSet.has(e.target),
     );
 
     graph.getNodes().forEach((n) => {
@@ -590,15 +594,14 @@ export default function PerturbationMap(
   return (
     <div
       style={{
-        height: "100vh",
-        padding: 20,
-        boxSizing: "border-box",
+        height: "calc(100vh - 34px)",
         display: "flex",
         flexDirection: "column",
-        overflow: "hidden",
       }}
     >
-      <div>
+      <div
+        style={{ padding: "20px", paddingBottom: 0, boxSizing: "border-box" }}
+      >
         <Form form={form} labelCol={{ span: 8 }} wrapperCol={{ span: 16 }}>
           <Grid.Row>
             <Grid.Col span={8}>
@@ -609,7 +612,7 @@ export default function PerturbationMap(
                   initialValue={[]}
                 >
                   <Select
-                    options={nodeIds?.map((item) => ({
+                    options={nodeIds?.map((item: any) => ({
                       label: item,
                       value: item,
                     }))}
@@ -644,7 +647,7 @@ export default function PerturbationMap(
                   initialValue={""}
                 >
                   <Select
-                    options={edgeIds?.map((item) => ({
+                    options={edgeIds?.map((item: any) => ({
                       label: item,
                       value: item,
                     }))}
@@ -743,18 +746,8 @@ export default function PerturbationMap(
           </Grid.Row>
         </Form>
       </div>
-      <div style={{ flex: 1, border: "1px solid transparent" }}>
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-          }}
-        >
-          <div
-            style={{ overflow: "hidden", minHeight: 0 }}
-            ref={containerRef}
-          />
-        </div>
+      <div style={{ flex: 1 }}>
+        <div ref={containerRef} />
       </div>
       <AdvancedSearchModal
         title="Search Nodes"
@@ -765,16 +758,16 @@ export default function PerturbationMap(
         onSearch={handleSearch}
         searchProperties={searchProperties ?? []}
       />
-      <ColorSettingsDrawer
+      {/* <ColorSettingsDrawer
         properties={properties}
         visible={visible}
         onCancel={() => {
           setVisible(false);
         }}
-        onConfirm={() => {
+        onSubmit={() => {
           setVisible(false);
         }}
-      />
+      /> */}
     </div>
   );
 }

@@ -52,8 +52,8 @@ export const MySpec: PluginUISpec = {
       controls: () => null,
     },
   },
-  behaviors: [
-    ...DefaultPluginUISpec().behaviors,
-    { transformer: ProteinAPIBehavior },
-  ],
+  // behaviors: [
+  //   ...DefaultPluginUISpec().behaviors,
+  //   { transformer: ProteinAPIBehavior },
+  // ],
 };

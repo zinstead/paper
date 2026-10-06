@@ -183,7 +183,10 @@ const EntryList = (props: PanelComponentProps<StateType>) => {
           </Dropdown>
         </div>
       </div>
-      <Input.Search style={{ marginBottom: 20 }} />
+      <Input.Search
+        style={{ marginBottom: 20 }}
+        placeholder="Search by ID / name"
+      />
       <Tree
         treeData={treeData}
         autoExpandParent={false}

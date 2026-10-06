@@ -8,7 +8,7 @@ import {
   type PaginationProps,
 } from "@arco-design/web-react";
 import { useEffect, useState } from "react";
-import { IconSettings } from "@arco-design/web-react/icon";
+import { IconSearch, IconSettings } from "@arco-design/web-react/icon";
 import DndWrapper from "@/components/DndWrapper";
 import ColorSettingsDrawer from "@/components/ColorSettingsDrawer";
 import { properties } from "@/constant";
@@ -20,9 +20,16 @@ import {
   type MoleculeSorterSchema,
 } from "@/api/index.ts";
 import { useQuery } from "@tanstack/react-query";
-import type { CardData } from "@/type/index.ts";
+import type { CardData, Property } from "@/type/index.ts";
 import { getPaginatedData } from "@/utils/agent.ts";
 import axios from "axios";
+
+export type ColorSettings = Record<
+  string,
+  { scale: string; inverted: boolean; mode: string; min: number; max: number }
+>;
+
+export type MinMaxMap = Record<string, { min: number; max: number }>;
 
 function getMinMaxByKey(data: Record<string, any>[]) {
   const result: Record<string, { min: number; max: number }> = {};
@@ -53,7 +60,6 @@ export default function LigandList(
 ) {
   const { state, setState } = props;
   const { pagination, filters, sorter, limit } = state;
-  console.log(state);
 
   const setPagination = (pagination: PaginationProps) => {
     setState({ pagination });
@@ -61,6 +67,10 @@ export default function LigandList(
 
   const cardList = useCardDataStore((state) => state.cardList);
   const setCardList = useCardDataStore((state) => state.setCardList);
+
+  const [colorSettings, setColorSettings] = useState<ColorSettings>();
+  const [minMaxMap, setMinMaxMap] = useState<MinMaxMap>();
+  const [propertyList, setPropertyList] = useState<Property[]>([]);
 
   useEffect(() => {
     setPagination({ ...pagination, current: 1 });
@@ -79,7 +89,10 @@ export default function LigandList(
       const res = await getMolecules({ pagination, filters, sorter, limit });
       setPagination({ ...pagination, total: res.total });
       const data = res.data;
+
       const minMaxMap = getMinMaxByKey(data);
+      setMinMaxMap(minMaxMap);
+
       const molecules = data.map((item: Record<string, any>) => {
         const { id, smiles, ...properties } = item;
         const node = {
@@ -98,6 +111,8 @@ export default function LigandList(
         };
         return node;
       });
+      setPropertyList(molecules[0].properties);
+
       return molecules;
     },
   });
@@ -133,7 +148,7 @@ export default function LigandList(
 
   return (
     <div style={{ padding: 20 }}>
-      <Space size={16}>
+      <Space size={16} style={{ marginBottom: 10 }}>
         <Button
           onClick={() => {
             setSettingsVisible(true);
@@ -141,15 +156,28 @@ export default function LigandList(
           style={{ marginBottom: 10 }}
           type="primary"
           icon={<IconSettings />}
-        ></Button>
+        >
+          Settings
+        </Button>
         <Button
           onClick={() => {
             setEditorVisible(true);
           }}
           type="primary"
           style={{ marginBottom: 10 }}
+          icon={<IconSearch />}
         >
-          子结构查询
+          Substructure
+        </Button>
+        <Button
+          onClick={() => {
+            setEditorVisible(true);
+          }}
+          type="primary"
+          style={{ marginBottom: 10 }}
+          icon={<IconSearch />}
+        >
+          Advanced Search
         </Button>
       </Space>
       <DndWrapper>
@@ -172,6 +200,7 @@ export default function LigandList(
                   index={index}
                   moveCard={moveCard}
                   switchLock={switchLock}
+                  colorSettings={colorSettings}
                 />
               );
             })
@@ -189,16 +218,18 @@ export default function LigandList(
           }}
         />
       </div>
-      <ColorSettingsDrawer
-        properties={properties}
-        visible={settingsVisible}
-        onCancel={() => {
-          setSettingsVisible(false);
-        }}
-        onConfirm={() => {
-          setSettingsVisible(false);
-        }}
-      />
+      {minMaxMap && (
+        <ColorSettingsDrawer
+          properties={propertyList}
+          colorSettings={colorSettings}
+          minMaxMap={minMaxMap}
+          visible={settingsVisible}
+          onCancel={() => {
+            setSettingsVisible(false);
+          }}
+          onSubmit={setColorSettings}
+        />
+      )}
       <SubstructureEditor
         visible={editorVisible}
         onCancel={() => {

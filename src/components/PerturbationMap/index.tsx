@@ -60,7 +60,7 @@ function renderNode({ node }: { node: Node<NodeProperties> }) {
             value,
             min,
             max,
-            linear: true,
+            scale: "linear",
             inverted: false,
           });
           const color = getTextColor(background);
@@ -775,7 +775,7 @@ export default function PerturbationMap() {
         onCancel={() => {
           setVisible(false);
         }}
-        onConfirm={() => {
+        onSubmit={() => {
           setVisible(false);
         }}
       />

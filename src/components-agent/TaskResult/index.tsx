@@ -35,12 +35,12 @@ const TaskResult = () => {
   return (
     <Space size={20} direction="vertical" style={{ width: "100%" }}>
       <Typography.Title heading={4}>Task Result</Typography.Title>
-      <Card title="Base">
-        <Descriptions column={3} data={baseData} />
-      </Card>
-      <Card title="Config">
-        <Descriptions column={3} data={configData} />
-      </Card>
+      {/* <Card title="Base"> */}
+      <Descriptions column={3} data={baseData} />
+      {/* </Card> */}
+      {/* <Card title="Config"> */}
+      <Descriptions column={3} data={configData} />
+      {/* </Card> */}
       <ABFEPResults />
     </Space>
   );

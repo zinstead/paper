@@ -21,7 +21,7 @@ interface MockData {
   edges: Edge[];
 }
 
-const NODE_COUNT = 20;
+const NODE_COUNT = 10;
 const EDGE_COUNT = 2 * NODE_COUNT;
 
 /** 一些简单的SMILES片段 */

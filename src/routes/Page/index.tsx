@@ -14,6 +14,7 @@ const Index = () => {
       <UploadMoleculeForm />
       <CreateTaskForm />
       <TaskResult />
+      <div style={{ height: 50 }}></div>
       <ABFEPPostProcessing />
       <EntryList state={{ projectId: 123 }} setState={() => {}} />
     </div>

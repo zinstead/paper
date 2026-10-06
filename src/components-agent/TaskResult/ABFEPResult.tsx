@@ -8,8 +8,13 @@ import {
   Grid,
   Tag,
   Tooltip,
+  Button,
 } from "@arco-design/web-react";
-import { IconCheckCircle, IconCloseCircle } from "@arco-design/web-react/icon";
+import {
+  IconCheckCircle,
+  IconCloseCircle,
+  IconDownload,
+} from "@arco-design/web-react/icon";
 import {
   ScatterChart,
   Scatter,
@@ -256,139 +261,153 @@ const ABFEPResults: React.FC = () => {
           alignItems: "center",
         }}
       >
-        <Card
-          title="Statistical indicators"
-          style={{ width: 800, marginBottom: 20 }}
-        >
-          <Row gutter={24}>
-            <Col span={8} style={{ textAlign: "center" }}>
-              <Text type="secondary">R²</Text>
-              <Title
-                heading={3}
-                style={{ margin: "4px 0 0", color: "#165DFF" }}
-              >
-                {r2.toFixed(3)}
-              </Title>
-            </Col>
-            <Col span={8} style={{ textAlign: "center" }}>
-              <Text type="secondary">RMSE (kcal/mol)</Text>
-              <Title
-                heading={3}
-                style={{ margin: "4px 0 0", color: "#165DFF" }}
-              >
-                {rmse.toFixed(3)}
-              </Title>
-            </Col>
-            <Col span={8} style={{ textAlign: "center" }}>
-              <Text type="secondary">MUE (kcal/mol)</Text>
-              <Title
-                heading={3}
-                style={{ margin: "4px 0 0", color: "#165DFF" }}
-              >
-                {mue.toFixed(3)}
-              </Title>
-            </Col>
-          </Row>
-        </Card>
+        <Space align="start" size={20}>
+          <div>
+            <Card
+              title="Statistical indicators"
+              style={{ width: 500, marginBottom: 10 }}
+            >
+              <Row gutter={24}>
+                <Col span={8} style={{ textAlign: "center" }}>
+                  <Text type="secondary">R²</Text>
+                  <Title
+                    heading={3}
+                    style={{ margin: "4px 0 0", color: "#165DFF" }}
+                  >
+                    {r2.toFixed(3)}
+                  </Title>
+                </Col>
+                <Col span={8} style={{ textAlign: "center" }}>
+                  <Text type="secondary">RMSE (kcal/mol)</Text>
+                  <Title
+                    heading={3}
+                    style={{ margin: "4px 0 0", color: "#165DFF" }}
+                  >
+                    {rmse.toFixed(3)}
+                  </Title>
+                </Col>
+                <Col span={8} style={{ textAlign: "center" }}>
+                  <Text type="secondary">MUE (kcal/mol)</Text>
+                  <Title
+                    heading={3}
+                    style={{ margin: "4px 0 0", color: "#165DFF" }}
+                  >
+                    {mue.toFixed(3)}
+                  </Title>
+                </Col>
+              </Row>
+            </Card>
 
-        <Card
-          title="Convergence and Overlap"
-          style={{ width: 800, marginBottom: 20 }}
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Text type="secondary">Convergence distribution</Text>
-              <div>
-                <Tag color="green" icon={<IconCheckCircle />}>
-                  Good:{" "}
-                  {ligandData.filter((d) => d.convergence === "good").length}
-                </Tag>{" "}
-                <Tag color="orange" icon={<IconCloseCircle />}>
-                  Fair:{" "}
-                  {ligandData.filter((d) => d.convergence === "fair").length}
-                </Tag>
-              </div>
-            </Col>
-            <Col span={12}>
-              <Text type="secondary">Average overlap</Text>
-              <Title heading={5} style={{ marginTop: 4 }}>
-                {(
-                  ligandData.reduce((sum, d) => sum + d.overlap, 0) /
-                  ligandData.length
-                ).toFixed(3)}
-              </Title>
-              <Text type="secondary">
-                Range:{" "}
-                {Math.min(...ligandData.map((d) => d.overlap)).toFixed(2)} ~{" "}
-                {Math.max(...ligandData.map((d) => d.overlap)).toFixed(2)}
-              </Text>
-            </Col>
-          </Row>
-        </Card>
+            <Card
+              title="Convergence and Overlap"
+              style={{ width: 500, marginBottom: 10 }}
+            >
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Text type="secondary">Convergence distribution</Text>
+                  <div>
+                    <Tag color="green" icon={<IconCheckCircle />}>
+                      Good:{" "}
+                      {
+                        ligandData.filter((d) => d.convergence === "good")
+                          .length
+                      }
+                    </Tag>{" "}
+                    <Tag color="orange" icon={<IconCloseCircle />}>
+                      Fair:{" "}
+                      {
+                        ligandData.filter((d) => d.convergence === "fair")
+                          .length
+                      }
+                    </Tag>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <Text type="secondary">Average overlap</Text>
+                  <Title heading={5} style={{ marginTop: 4 }}>
+                    {(
+                      ligandData.reduce((sum, d) => sum + d.overlap, 0) /
+                      ligandData.length
+                    ).toFixed(3)}
+                  </Title>
+                  <Text type="secondary">
+                    Range:{" "}
+                    {Math.min(...ligandData.map((d) => d.overlap)).toFixed(2)} ~{" "}
+                    {Math.max(...ligandData.map((d) => d.overlap)).toFixed(2)}
+                  </Text>
+                </Col>
+              </Row>
+            </Card>
+          </div>
 
-        {/* 验证图表与统计指标 */}
-        <Card
-          title="Experiment vs Calculate ΔG Correlation"
-          bordered
-          style={{ width: 800, marginBottom: 20, aspectRatio: 4 / 3 }}
-        >
-          <ScatterChart
-            width={750}
-            height={600}
-            margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+          {/* 验证图表与统计指标 */}
+          <Card
+            title="Experiment vs Calculate ΔG Correlation"
+            bordered
+            style={{ width: 420, marginBottom: 20, aspectRatio: 4 / 3 }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              type="number"
-              dataKey="exp"
-              name="Experiment ΔG"
-              //   unit=" kcal/mol"
-              domain={["auto", "auto"]}
-              label={{
-                value: "Experiment ΔG (kcal/mol)",
-                position: "insideBottom",
-                offset: -5,
-              }}
-            />
-            <YAxis
-              type="number"
-              dataKey="calc"
-              name="Calculate ΔG"
-              //   unit=" kcal/mol"
-              domain={["auto", "auto"]}
-              label={{
-                value: "Calculate ΔG (kcal/mol)",
-                angle: -90,
-                position: "insideLeft",
-              }}
-            />
-            <ReTooltip
-              cursor={{ strokeDasharray: "3 3" }}
-              //   formatter={(value: number, name: string) => [`${value.toFixed(2)} kcal/mol`, name === 'exp' ? '实验值' : '计算值']}
-              labelFormatter={(label) => `实验值: ${label}`}
-            />
-            {/* <Legend /> */}
-            <ReferenceLine
-              segment={[
-                { x: -10, y: -10 },
-                { x: -4, y: -4 },
-              ]}
-              stroke="#999"
-              strokeDasharray="5 5"
-              label={<Label value="y = x" position="top" fill="#999" />}
-            />
-            <Scatter
-              name="Compound"
-              data={scatterData}
-              fill="#165DFF"
-              shape="circle"
-            />
-          </ScatterChart>
-        </Card>
+            <ScatterChart
+              width={400}
+              height={300}
+              margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                type="number"
+                dataKey="exp"
+                name="Experiment ΔG"
+                //   unit=" kcal/mol"
+                domain={["auto", "auto"]}
+                label={{
+                  value: "Experiment ΔG (kcal/mol)",
+                  position: "insideBottom",
+                  offset: -5,
+                }}
+              />
+              <YAxis
+                type="number"
+                dataKey="calc"
+                name="Calculate ΔG"
+                //   unit=" kcal/mol"
+                domain={["auto", "auto"]}
+                label={{
+                  value: "Calculate ΔG (kcal/mol)",
+                  angle: -90,
+                  position: "insideLeft",
+                }}
+              />
+              <ReTooltip
+                cursor={{ strokeDasharray: "3 3" }}
+                //   formatter={(value: number, name: string) => [`${value.toFixed(2)} kcal/mol`, name === 'exp' ? '实验值' : '计算值']}
+                labelFormatter={(label) => `实验值: ${label}`}
+              />
+              {/* <Legend /> */}
+              <ReferenceLine
+                segment={[
+                  { x: -10, y: -10 },
+                  { x: -4, y: -4 },
+                ]}
+                stroke="#999"
+                strokeDasharray="5 5"
+                label={<Label value="y = x" position="top" fill="#999" />}
+              />
+              <Scatter
+                name="Compound"
+                data={scatterData}
+                fill="#165DFF"
+                shape="circle"
+              />
+            </ScatterChart>
+          </Card>
+        </Space>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <Typography.Title heading={5}>ΔG Table</Typography.Title>
+        <Button icon={<IconDownload />}>Download</Button>
       </div>
 
       {/* 表格区域 - 横向滚动支持 */}
-      <Typography.Title heading={5}>ΔG Table</Typography.Title>
       <Table
         columns={columns}
         data={ligandData}

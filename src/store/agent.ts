@@ -1,6 +1,6 @@
 import type { DockviewApi } from "dockview";
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { devtools, persist } from "zustand/middleware";
 
 export type PanelStatesType = Record<string, any>;
 
@@ -39,14 +39,16 @@ interface UIStore {
 }
 
 export const useUIStore = create<UIStore>()(
-  devtools((set) => ({
-    panelStates: {},
-    dockviewApi: null,
-    uiContext: {},
-    agentMessages: [],
-    chatMessages: [],
-    user: {
-      username: "alan",
-    },
-  })),
+  devtools(
+    persist((set) => ({
+      panelStates: {},
+      dockviewApi: null,
+      uiContext: {},
+      agentMessages: [],
+      chatMessages: [],
+      user: {
+        username: "alan",
+      },
+    })),
+  ),
 );

@@ -45,7 +45,11 @@ const App = () => {
       element: <div>404</div>,
     },
   ]);
-  return <Suspense fallback={<div>loading...</div>}>{routes}</Suspense>;
+  return (
+    <Suspense fallback={<div>loading...</div>}>
+      <div style={{ height: "100vh" }}>{routes}</div>
+    </Suspense>
+  );
 };
 
 export default App;

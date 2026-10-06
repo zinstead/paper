@@ -113,7 +113,7 @@ export default function CardList() {
         onCancel={() => {
           setSettingsVisible(false);
         }}
-        onConfirm={() => {
+        onSubmit={() => {
           setSettingsVisible(false);
         }}
       />

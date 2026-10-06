@@ -59,7 +59,8 @@ export async function loadSdf(plugin: PluginUIContext, url: string) {
 }
 
 export async function loadPdb(plugin: PluginUIContext, pdbId: string) {
-  const url = `https://files.rcsb.org/download/${pdbId}.pdb`;
+  // const url = `https://files.rcsb.org/download/${pdbId}.pdb`;
+  const url = `/${pdbId}.pdb`;
 
   const data = await plugin.builders.data.download({ url });
   const trajectory = await plugin.builders.structure.parseTrajectory(
@@ -80,6 +81,99 @@ export async function loadPdb(plugin: PluginUIContext, pdbId: string) {
     color: "element-symbol",
   });
   return structure;
+}
+
+export async function loadTestCase(plugin: PluginUIContext) {
+  // const url = `https://files.rcsb.org/download/${pdbId}.pdb`;
+  const protein = "/pdb/cdk8_protein.pdb",
+    ligandA = "/pdb/cdk8_ligand_A.pdb",
+    ligandB = "/pdb/cdk8_ligand_B.pdb";
+
+  async function loadProtein() {
+    const data = await plugin.builders.data.download({
+      url: protein,
+    });
+    const trajectory = await plugin.builders.structure.parseTrajectory(
+      data,
+      "pdb",
+    );
+    const model = await plugin.builders.structure.createModel(trajectory);
+    const structure = await plugin.builders.structure.createStructure(model, {
+      name: "model",
+      params: { dynamicBonds: false },
+    });
+    await plugin.builders.structure.representation.addRepresentation(
+      structure,
+      {
+        type: "cartoon",
+        color: "chain-id",
+      },
+    );
+    await plugin.builders.structure.representation.addRepresentation(
+      structure,
+      {
+        type: "line",
+        color: "element-symbol",
+      },
+    );
+    return structure;
+  }
+
+  async function loadLigandA() {
+    const data = await plugin.builders.data.download({
+      url: ligandA,
+    });
+    const trajectory = await plugin.builders.structure.parseTrajectory(
+      data,
+      "pdb",
+    );
+    const model = await plugin.builders.structure.createModel(trajectory);
+    const structure = await plugin.builders.structure.createStructure(model, {
+      name: "model",
+      params: { dynamicBonds: false },
+    });
+    await plugin.builders.structure.representation.addRepresentation(
+      structure,
+      {
+        type: "ball-and-stick",
+        color: "uniform",
+        typeParams: {
+          sizeFactor: 0.1,
+          sizeAspectRatio: 2.0, // 增粗 bond
+          tryUseImpostor: true,
+        },
+      },
+    );
+    return structure;
+  }
+
+  async function loadLigandB() {
+    const data = await plugin.builders.data.download({
+      url: ligandB,
+    });
+    const trajectory = await plugin.builders.structure.parseTrajectory(
+      data,
+      "pdb",
+    );
+    const model = await plugin.builders.structure.createModel(trajectory);
+    const structure = await plugin.builders.structure.createStructure(model, {
+      name: "model",
+      params: { dynamicBonds: false },
+    });
+    await plugin.builders.structure.representation.addRepresentation(
+      structure,
+      {
+        type: "ball-and-stick",
+        color: "element-symbol",
+      },
+    );
+    return structure;
+  }
+
+  const proteinStructure = await loadProtein();
+  await loadLigandA();
+  await loadLigandB();
+  return proteinStructure;
 }
 
 export function getSequenceData(structure: Structure) {
@@ -115,8 +209,8 @@ export function getTreeDataFromSequence(
   sequence: ProteinSequence,
 ) {
   return {
-    key: entryId,
-    title: entryId,
+    key: "cdk8_protein",
+    title: "cdk8_protein",
     children: Object.keys(sequence).map((auth_asym_id, i) => {
       const { description, residues } = sequence[auth_asym_id];
       return {

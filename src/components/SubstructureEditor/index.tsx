@@ -12,14 +12,14 @@ const SubstructureEditor = (props: {
   onSearch: (smarts: string) => void;
 }) => {
   const { visible, onCancel, onSearch } = props;
-  const [smarts, setSmarts] = useState<string>();
+  const [substructure, setSubstructure] = useState<string>("");
 
   const handleOnInit = async (ketcher: Ketcher) => {
     (window as any).ketcher = ketcher;
     // ketcher.setMolecule(editData.structure);
     ketcher.editor.subscribe("change", async () => {
-      const structure = await ketcher.getSmarts();
-      setSmarts(structure);
+      const structure = await ketcher.getSmiles();
+      setSubstructure(structure);
     });
   };
   return (
@@ -27,8 +27,9 @@ const SubstructureEditor = (props: {
       visible={visible}
       onCancel={onCancel}
       onConfirm={() => {
-        if (smarts) {
-          onSearch(smarts);
+        if (substructure) {
+          onSearch(substructure);
+          onCancel();
         }
       }}
       style={{ width: 800 }}
@@ -42,11 +43,11 @@ const SubstructureEditor = (props: {
         />
       </div>
       <label>
-        <span style={{ marginRight: 8 }}>SMARTS:</span>
+        <span style={{ marginRight: 8 }}>SMILES: </span>
         <Input
-          value={smarts}
+          value={substructure}
           onChange={() => {
-            setSmarts(smarts);
+            setSubstructure(substructure);
           }}
           style={{ width: 300, marginTop: 20 }}
         />

@@ -24,6 +24,7 @@ import {
   toggleMeasurementVisibility,
   highlightMeasurement,
   removeMolecule,
+  loadTestCase,
 } from "@/utils/viewer";
 import { IconDelete, IconPlus } from "@arco-design/web-react/icon";
 import { parseInt } from "lodash";
@@ -49,13 +50,13 @@ const StructureViewer = (
   const [ligandTreeData, setLigandTreeData] = useState(() => {
     const ligandTreeData = [
       {
-        key: "/PCG_ideal.sdf",
-        title: "PCG",
+        key: "cdk8_ligandA",
+        title: "cdk8_ligandA",
         checkable: true,
       },
       {
-        key: "/HEM_ideal.sdf",
-        title: "HEM",
+        key: "cdk8_ligandB",
+        title: "cdk8_ligandB",
         checkable: true,
       },
     ];
@@ -93,12 +94,18 @@ const StructureViewer = (
       spec: MySpec,
       render: renderReact18,
     });
-    await initTreeData(plugin);
+    // await initTreeData(plugin);
+    const structure = await loadTestCase(plugin);
+    const { entryId, sequence } = getSequenceData(structure.data!);
+    const treeData = getTreeDataFromSequence(entryId, sequence);
+
+    setPorteinStructureMap({ cdk8_protein: structure });
+    setProteinTreeData([treeData]);
     setPlugin(plugin);
   }
 
   async function initTreeData(plugin: PluginUIContext) {
-    const proteins = ["1EF2"];
+    const proteins = ["7pzb"];
     const proteinTreeData: any = [];
     const map: any = {};
     for (let pdbId of proteins) {
@@ -163,7 +170,10 @@ const StructureViewer = (
   }
 
   useEffect(() => {
-    createPlugin(parent.current as HTMLDivElement);
+    const parent = document.getElementById("molstar-container");
+    if (parent) {
+      createPlugin(parent);
+    }
 
     return () => {
       plugin?.dispose();
@@ -171,8 +181,267 @@ const StructureViewer = (
   }, []);
 
   return (
+    <div style={{ display: "flex", height: "100%" }}>
+      <div style={{ width: 300, padding: 20, boxSizing: "border-box" }}>
+        {plugin && (
+          <div>
+            <div>
+              <label>Protein:</label>
+              <Tree
+                defaultCheckedKeys={["cdk8_protein"]}
+                treeData={proteinTreeData}
+                autoExpandParent={false}
+                blockNode
+                onSelect={(_, { node }) => {
+                  const props = node.props;
+                  const key = props.dataRef?.key!;
+                  if (props._level === 2) {
+                    const { auth_asym_id, auth_seq_id, ins_code } =
+                      props.dataRef?.data;
+                    const residues: ResidueMap = {
+                      [auth_asym_id]: [{ seq_id: auth_seq_id, ins_code }],
+                    };
+                    focusResidues({
+                      plugin,
+                      structure: proteinStructureMap["1EF2"].cell?.obj?.data,
+                      residues,
+                    });
+                  } else if (props._level === 1) {
+                    focusChains({
+                      plugin,
+                      structure: proteinStructureMap["1EF2"].cell?.obj?.data,
+                      auth_asym_ids: [key],
+                    });
+                  }
+                }}
+                renderTitle={(props) => {
+                  return (
+                    <div
+                      onMouseEnter={() => {
+                        const key = props.dataRef?.key!;
+                        if (props._level === 2) {
+                          const { auth_asym_id, auth_seq_id, ins_code } =
+                            props.dataRef?.data;
+                          const residues: ResidueMap = {
+                            [auth_asym_id]: [{ seq_id: auth_seq_id, ins_code }],
+                          };
+                          highlightResidues({
+                            plugin,
+                            structure:
+                              proteinStructureMap["1EF2"].cell?.obj?.data,
+                            residues,
+                          });
+                        } else if (props._level === 1) {
+                          highlightChains({
+                            plugin,
+                            structure:
+                              proteinStructureMap["1EF2"].cell?.obj?.data,
+                            auth_asym_ids: [key],
+                          });
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        clearHighlights(plugin);
+                      }}
+                    >
+                      <Typography.Ellipsis style={{ maxWidth: 210 }}>
+                        {props.title}
+                      </Typography.Ellipsis>
+                    </div>
+                  );
+                }}
+                renderExtra={(props) => {
+                  const key = props._key!;
+                  if (props._level === 0) {
+                    return (
+                      <Link
+                        hoverable={false}
+                        style={{ height: 32, lineHeight: "32px" }}
+                        onClick={() => {
+                          removeMolecule(plugin, proteinStructureMap[key]);
+                        }}
+                      >
+                        <IconDelete />
+                      </Link>
+                    );
+                  }
+                }}
+                onCheck={async (checkedKeys, { checked, node }) => {
+                  const key = node.key!;
+                  if (checked) {
+                    // 已加载
+                    if (proteinStructureMap[key]) {
+                      toggleMoleculeVisibility(
+                        plugin,
+                        proteinStructureMap[key],
+                      );
+                      return;
+                    }
+                    // 未加载
+                    const structure = await loadPdb(plugin, key);
+                    setPorteinStructureMap({
+                      ...proteinStructureMap,
+                      [key]: structure,
+                    });
+                    const { entryId, sequence } = getSequenceData(
+                      structure.data!,
+                    );
+                    const treeData = getTreeDataFromSequence(entryId, sequence);
+                    setProteinTreeData([...proteinTreeData, treeData]);
+                  } else {
+                    toggleMoleculeVisibility(plugin, proteinStructureMap[key]);
+                  }
+                }}
+                virtualListProps={{ height: 300 }}
+              />
+            </div>
+            <div style={{ margin: "30px 0" }}>
+              <label>Ligand:</label>
+              <Tree
+                checkedKeys={["cdk8_ligandA", "cdk8_ligandB"]}
+                treeData={ligandTreeData}
+                autoExpandParent={false}
+                blockNode
+                renderTitle={(props) => {
+                  return (
+                    <div
+                      onMouseEnter={() => {
+                        if (!plugin) return;
+                        const key = props._key!;
+                        const ligandLoci = Structure.toStructureElementLoci(
+                          ligandStructureMap[key].cell?.obj?.data as any,
+                        );
+                        plugin.managers.interactivity.lociHighlights.highlight({
+                          loci: ligandLoci,
+                        });
+                      }}
+                      onMouseLeave={() => {
+                        clearHighlights(plugin);
+                      }}
+                    >
+                      <Typography.Ellipsis style={{ maxWidth: 210 }}>
+                        {props.title}
+                      </Typography.Ellipsis>
+                    </div>
+                  );
+                }}
+                renderExtra={(props) => {
+                  return (
+                    <Link
+                      hoverable={false}
+                      style={{ height: 32, lineHeight: "32px" }}
+                      onClick={() => {
+                        const key = props._key!;
+                        removeMolecule(plugin, ligandStructureMap[key]);
+                      }}
+                    >
+                      <IconDelete />
+                    </Link>
+                  );
+                }}
+                onCheck={async (checkedKeys, { checked, node }) => {
+                  const key = node.key!;
+                  if (checked) {
+                    // 已加载
+                    if (ligandStructureMap[key]) {
+                      toggleMoleculeVisibility(plugin, ligandStructureMap[key]);
+                      return;
+                    }
+                    // 未加载
+                    const structure = await loadSdf(plugin, key);
+                    setLigandStructureMap({
+                      ...ligandStructureMap,
+                      [key]: structure,
+                    });
+                  } else {
+                    toggleMoleculeVisibility(plugin, ligandStructureMap[key]);
+                  }
+                }}
+              />
+            </div>
+            <div>
+              <label>Measurement:</label>
+              <div style={{ margin: "20px 0" }}>
+                <Checkbox
+                  checked={selectMode}
+                  onChange={(c) => {
+                    setSelectMode(c);
+                    plugin!.selectionMode = c;
+                    plugin!.behaviors.interaction.click.subscribe(
+                      ({ current }) => {
+                        if (current.loci.kind === "empty-loci") return;
+                        setSelectLocis((selectLocis) => {
+                          return [...selectLocis, current.loci];
+                        });
+                      },
+                    );
+                  }}
+                >
+                  Selection Mode
+                </Checkbox>
+              </div>
+              <Tree
+                defaultCheckedKeys={["Distance 1"]}
+                treeData={measurementTreeData}
+                blockNode
+                renderExtra={(props) => {
+                  const node = props.dataRef;
+                  if (!props.checkable) {
+                    return (
+                      <Link
+                        style={{ height: 32, lineHeight: "32px" }}
+                        hoverable={false}
+                        onClick={() => {
+                          addMeasurement(plugin, selectLocis, node?.key!);
+                          setSelectLocis([]);
+                        }}
+                      >
+                        <IconPlus />
+                      </Link>
+                    );
+                  }
+                }}
+                onCheck={(_, { node, checked }) => {
+                  const res = measurementRefs[node.key!];
+                  toggleMeasurementVisibility(plugin, res?.selRef);
+                }}
+                renderTitle={(props) => {
+                  const node = props.dataRef;
+                  const res = measurementRefs[node?.key!];
+                  return (
+                    <div
+                      onMouseEnter={() => {
+                        highlightMeasurement(plugin, res?.selRef.ref);
+                      }}
+                      onMouseLeave={() => {
+                        clearHighlights(plugin);
+                      }}
+                    >
+                      <Typography.Ellipsis style={{ maxWidth: 210 }}>
+                        {props.title}
+                      </Typography.Ellipsis>
+                    </div>
+                  );
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+      <div style={{ flex: 1 }}>
+        <div
+          style={{ position: "relative", height: "100%" }}
+          id="molstar-container"
+        ></div>
+      </div>
+    </div>
+  );
+
+  return (
     <Layout style={{ width: "100%", height: "100%" }}>
-      <Layout.Sider style={{ width: 300, padding: 20 }}>
+      <Layout.Sider
+        style={{ width: 300, padding: 20, boxSizing: "border-box" }}
+      >
         {plugin && (
           <div>
             <div>
@@ -418,9 +687,8 @@ const StructureViewer = (
       </Layout.Sider>
       <Layout.Content>
         <div
-          ref={parent}
+          id="molstar-container"
           style={{
-            width: "100%",
             height: "100%",
             position: "relative",
           }}

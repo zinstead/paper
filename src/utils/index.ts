@@ -6,18 +6,20 @@ export function getBackground(params: {
   value: number;
   min: number;
   max: number;
-  linear: boolean;
+  scale: string;
   inverted: boolean;
 }) {
-  const { value, min, max, linear, inverted } = params;
+  const { value, min, max, scale, inverted } = params;
   const invalidValueBackground = "#808080";
   const preScale = d3.scaleLinear().domain([min, max]).range([1, 100]);
-  const scale = linear ? d3.scaleLinear() : d3.scaleLog();
+  const scaleFn = scale === "linear" ? d3.scaleLinear() : d3.scaleLog();
   const range = inverted ? [1, 0] : [0, 1];
-  scale.domain([1, 100]).range(range);
-  const parsedValue = scale(preScale(value));
-  const color = d3.interpolateRdYlGn(parsedValue);
-  return isFinite(value) ? color : invalidValueBackground;
+  scaleFn.domain([1, 100]).range(range);
+  const parsedValue = scaleFn(preScale(value));
+  const backgroundColor = d3.interpolateRdYlGn(parsedValue);
+  // const isValid = isFinite(value) && value >= min && value <= max;
+  const isValid = isFinite(value);
+  return isValid ? backgroundColor : invalidValueBackground;
 }
 
 export function getTextColor(backgroundColor: string): "#000" | "#fff" {

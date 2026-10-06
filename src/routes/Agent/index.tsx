@@ -164,11 +164,7 @@ const Agent = () => {
   );
 
   return (
-    <Layout
-      style={{
-        height: "100vh",
-      }}
-    >
+    <Layout style={{ height: "100%" }}>
       {/* 左侧聊天区 */}
       <Layout.Sider width={400} className={styles.customTextarea}>
         <div
@@ -185,7 +181,7 @@ const Agent = () => {
                 display: "flex",
                 justifyContent: "space-between",
                 color: "rgb(129, 133, 140)",
-                marginBottom: 12,
+                // marginBottom: 12,
               }}
             >
               <Space size={12}>
@@ -202,7 +198,7 @@ const Agent = () => {
                 >
                   <IconUser style={{ fontSize: 16 }} />
                 </div>
-                <span>1371634433@qq.com</span>
+                <span>test-user@qq.com</span>
               </Space>
               <Dropdown droplist={droplist} position="br" trigger={"click"}>
                 <div
@@ -219,7 +215,7 @@ const Agent = () => {
                 </div>
               </Dropdown>
             </div>
-            {workspaceId ? (
+            {/* {workspaceId ? (
               <Alert
                 type="warning"
                 content={
@@ -238,7 +234,7 @@ const Agent = () => {
                   </div>
                 }
               />
-            )}
+            )} */}
           </div>
 
           {/* 消息区域 */}
@@ -340,7 +336,6 @@ const Agent = () => {
       {/* 右侧 Panel */}
       <Layout.Content
         style={{
-          flex: 1,
           borderLeft: "1px solid #eee",
         }}
       >

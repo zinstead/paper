@@ -42,6 +42,7 @@ const CompoundCard = (props: {
           svgMode={svgMode}
           drawingDelay={drawingDelay}
           previewWidth={previewWidth}
+          // subStructure={"c1ccccc1"}
         />
       </div>
       {footer}
